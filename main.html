@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Team Website</title>
+
+  <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  >
+
+  <!--CSS-->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!--NAVBAR-->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+  <div class="container">
+
+    <a class="navbar-brand fw-bold" href="#home">TEAM NAME</a>
+
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#mainNav"
+      aria-controls="mainNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item">
+          <a class="nav-link" href="#home">Home</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#join">How to Join</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#schedule">Schedule</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#history">History</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#roster">Roster</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#media">Media</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#contact">Contact</a>
+        </li>
+
+      </ul>
+    </div>
+
+  </div>
+</nav>
+
+
+<!--HERO-->
+<header id="home" class="hero-section">
+
+  <div class="hero-overlay"></div>
+
+  <div class="container hero-content text-center text-white">
+
+    <span class="badge bg-warning text-dark mb-3">
+      NO EXPERIENCE NECESSARY
+    </span>
+
+    <h1 class="display-2 fw-bold">
+      Welcome to Team Name
+    </h1>
+
+    <p class="lead">
+      Come compete, make friends, and be part of the team.
+    </p>
+
+    <div class="hero-buttons mt-4">
+
+      <a href="#join" class="btn btn-primary btn-lg me-2">
+        Join the Team
+      </a>
+
+      <a href="#schedule" class="btn btn-outline-light btn-lg">
+        View Schedule
+      </a>
+
+    </div>
+
+  </div>
+</header>
+
+
+<!--QUICK INFO-->
+<section class="py-5 bg-light">
+
+  <div class="container">
+
+    <div class="row g-4 text-center">
+
+      <div class="col-md-4">
+        <div class="info-card">
+          <div class="info-icon">🏆</div>
+          <h3>Competitive</h3>
+          <p>
+            We compete hard while making sure everyone has a place on the team.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="info-card">
+          <div class="info-icon">🤝</div>
+          <h3>Everyone Welcome</h3>
+          <p>
+            No previous experience is required. Come learn and improve with us.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="info-card">
+          <div class="info-icon">🔥🔥🔥🔥🔥🔥</div>
+          <h3>Great Community</h3>
+          <p>
+            Meet teammates, build friendships, and represent the team together.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!--NEXT EVENT-->
+<section class="py-5">
+
+  <div class="container">
+
+    <div class="section-heading text-center mb-5">
+      <span class="section-label">UP NEXT</span>
+      <h2>Our Next Event</h2>
+    </div>
+
+    <div id="nextEvent" class="next-event-card">
+      <!--JavaScript is used here-->
+    </div>
+
+  </div>
+
+</section>
+
+
+<!--JOIN-->
+<section id="join" class="py-5 bg-light">
+
+  <div class="container">
+
+    <div class="row justify-content-center">
+
+      <div class="col-lg-9">
+
+        <div class="section-heading text-center mb-5">
+          <span class="section-label">🔥GET INVOLVED🔥</span>
+
+          <h2>How to Join</h2>
+
+          <p class="lead">
+            Interested in playing with us? Fill out the form below and we'll
+            get in touch with you. 🤝
+          </p>
+        </div>
+
+
+        <div class="card shadow-sm border-0">
+
+          <div class="card-body p-4 p-md-5">
+
+            <form id="joinForm">
+
+              <div class="row">
+
+                <div class="col-md-6 mb-3">
+                  <label for="playerName" class="form-label">
+                    Full Name
+                  </label>
+
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="playerName"
+                    required
+                  >
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+                  <label for="playerEmail" class="form-label">
+                    Email Address
+                  </label>
+
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="playerEmail"
+                    required
+                  >
+                </div>
+
+              </div>
+
+
+              <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                  <label for="position" class="form-label">
+                    Position / Role of Interest
+                  </label>
+
+                  <select class="form-select" id="position" required>
+
+                    <option value="">Select one...</option>
+                    <option>Player</option>
+                    <option>Goalkeeper</option>
+                    <option>Defense</option>
+                    <option>Midfield</option>
+                    <option>Forward</option>
+                    <option>Other</option>
+
+                  </select>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                  <label for="experience" class="form-label">
+                    Experience Level
+                  </label>
+
+                  <select class="form-select" id="experience" required>
+
+                    <option value="">Select one...</option>
+                    <option>No experience</option>
+                    <option>Beginner</option>
+                    <option>Intermediate</option>
+                    <option>Advanced</option>
+                    <option>Competitive</option>
+
+                  </select>
+
+                </div>
+
+              </div>
+
+
+              <div class="mb-3">
+
+                <label for="message" class="form-label">
+                  Anything else we should know?
+                </label>
+
+                <textarea
+                  class="form-control"
+                  id="message"
+                  rows="4"
+                  placeholder="Tell us a little about yourself..."
+                ></textarea>
+
+              </div>
+
+
+              <button type="submit" class="btn btn-primary btn-lg">
+                Submit Interest
+              </button>
+
+            </form>
+
+
+            <!-- Confirmation message -->
+            <div
+              id="joinConfirmation"
+              class="alert alert-success mt-4 d-none"
+              role="alert"
+            >
+              <h5 class="alert-heading">
+                Thanks for reaching out!
+              </h5>
+
+              <p class="mb-0">
+                We've received your information. A team representative will
+                follow up with you about an upcoming practice.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     SCHEDULE
+========================= -->
+<section id="schedule" class="py-5">
+
+  <div class="container">
+
+    <div class="section-heading text-center mb-5">
+
+      <span class="section-label">WHEN WE PLAY</span>
+
+      <h2>Schedule</h2>
+
+      <p class="lead">
+        Check back regularly for practices, games, and schedule changes.
+      </p>
+
+    </div>
+
+
+    <!-- Schedule controls -->
+    <div class="text-center mb-4">
+
+      <button
+        class="btn btn-outline-primary schedule-filter active"
+        data-filter="all">
+        All
+      </button>
+
+      <button
+        class="btn btn-outline-primary schedule-filter"
+        data-filter="practice">
+        Practices
+      </button>
+
+      <button
+        class="btn btn-outline-primary schedule-filter"
+        data-filter="game">
+        Games
+      </button>
+
+    </div>
+
+
+    <div id="scheduleList" class="row g-4">
+      <!-- Schedule generated by JavaScript -->
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     HISTORY
+========================= -->
+<section id="history" class="py-5 bg-light">
+
+  <div class="container">
+
+    <div class="section-heading text-center mb-5">
+
+      <span class="section-label">OUR STORY</span>
+
+      <h2>Team History</h2>
+
+      <p class="lead">
+        A look at some of the moments that helped build our team.
+      </p>
+
+    </div>
+
+
+    <div class="timeline">
+
+      <div class="timeline-item">
+
+        <div class="timeline-year">
+          2021
+        </div>
+
+        <div class="timeline-content">
+
+          <h4>Team Founded</h4>
+
+          <p>
+            Our team officially came together and began competing.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="timeline-item">
+
+        <div class="timeline-year">
+          2022
+        </div>
+
+        <div class="timeline-content">
+
+          <h4>First Championship Appearance</h4>
+
+          <p>
+            We made our first appearance in the league championship.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="timeline-item">
+
+        <div class="timeline-year">
+          2023
+        </div>
+
+        <div class="timeline-content">
+
+          <h4>First Championship</h4>
+
+          <p>
+            The team captured its first championship.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="timeline-item">
+
+        <div class="timeline-year">
+          2025
+        </div>
+
+        <div class="timeline-content">
+
+          <h4>Growing Stronger</h4>
+
+          <p>
+            Our roster and community continued to grow.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     ROSTER
+========================= -->
+<section id="roster" class="py-5">
+
+  <div class="container">
+
+    <div class="section-heading text-center mb-5">
+
+      <span class="section-label">THE PEOPLE</span>
+
+      <h2>Leadership & Coaches</h2>
+
+    </div>
+
+
+    <div class="row g-4 justify-content-center">
+
+
+      <!-- President -->
+      <div class="col-md-4">
+
+        <div class="person-card text-center">
+
+          <div class="person-avatar">
+            👤
+          </div>
+
+          <h4>President Name</h4>
+
+          <p class="text-primary fw-bold">
+            Team President
+          </p>
+
+          <p>
+            Responsible for team organization and leadership.
+          </p>
+
+          <a href="mailto:president@example.com">
+            president@example.com
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- Head Coach -->
+      <div class="col-md-4">
+
+        <div class="person-card text-center">
+
+          <div class="person-avatar">
+            🏆
+          </div>
+
+          <h4>Coach Name</h4>
+
+          <p class="text-primary fw-bold">
+            Head Coach
+          </p>
+
+          <p>
+            Leads practices, games, and player development.
+          </p>
+
+          <a href="mailto:coach@example.com">
+            coach@example.com
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- Captain -->
+      <div class="col-md-4">
+
+        <div class="person-card text-center">
+
+          <div class="person-avatar">
+            ⭐
+          </div>
+
+          <h4>Captain Name</h4>
+
+          <p class="text-primary fw-bold">
+            Team Captain
+          </p>
+
+          <p>
+            Helps lead the team on and off the field.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     MEDIA
+========================= -->
+<section id="media" class="py-5 bg-light">
+
+  <div class="container">
+
+    <div class="section-heading text-center mb-5">
+
+      <span class="section-label">FOLLOW ALONG</span>
+
+      <h2>Media</h2>
+
+      <p class="lead">
+        Follow the team for photos, videos, updates, and highlights.
+      </p>
+
+    </div>
+
+
+    <div class="row g-4">
+
+
+      <div class="col-md-6">
+
+        <div class="media-card">
+
+          <div class="media-icon">
+            📸
+          </div>
+
+          <h3>Instagram</h3>
+
+          <p>
+            See photos, game-day updates, and behind-the-scenes content.
+          </p>
+
+          <a
+            href="https://www.instagram.com/"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-dark">
+            Visit Instagram
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <div class="col-md-6">
+
+        <div class="media-card">
+
+          <div class="media-icon">
+            ▶️
+          </div>
+
+          <h3>YouTube</h3>
+
+          <p>
+            Watch game highlights, videos, and team content.
+          </p>
+
+          <a
+            href="https://www.youtube.com/"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-danger">
+            Visit YouTube
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     CONTACT
+========================= -->
+<section id="contact" class="py-5">
+
+  <div class="container">
+
+    <div class="row justify-content-center">
+
+      <div class="col-lg-8 text-center">
+
+        <div class="section-heading mb-4">
+
+          <span class="section-label">GET IN TOUCH</span>
+
+          <h2>Contact the Team</h2>
+
+        </div>
+
+        <p class="lead">
+          Have a question about the team, schedule, or joining?
+          Reach out to us.
+        </p>
+
+        <div class="contact-buttons mt-4">
+
+          <a
+            href="mailto:president@example.com"
+            class="btn btn-primary btn-lg me-2">
+            Email President
+          </a>
+
+          <a
+            href="mailto:coach@example.com"
+            class="btn btn-outline-primary btn-lg">
+            Email Coach
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     FOOTER
+========================= -->
+<footer class="bg-dark text-white py-4">
+
+  <div class="container">
+
+    <div class="row align-items-center">
+
+      <div class="col-md-6">
+
+        <h5 class="mb-1">
+          TEAM NAME
+        </h5>
+
+        <small>
+          No experience necessary. Everyone is welcome.
+        </small>
+
+      </div>
+
+      <div class="col-md-6 text-md-end mt-3 mt-md-0">
+
+        <a
+          href="https://www.instagram.com/"
+          target="_blank"
+          rel="noopener"
+          class="footer-link">
+          Instagram
+        </a>
+
+        <a
+          href="https://www.youtube.com/"
+          target="_blank"
+          rel="noopener"
+          class="footer-link">
+          YouTube
+        </a>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+    <p class="text-center mb-0 small">
+      &copy; <span id="currentYear"></span> Team Name. All rights reserved.
+    </p>
+
+  </div>
+
+</footer>
+
+
+<!--Bootstrap JavaScript -->
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+  crossorigin="anonymous">
+</script>
+
+<!--Custom JavaScript -->
+<script src="script.js"></script>
+
+</body>
+</html>
