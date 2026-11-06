@@ -1,18 +1,38 @@
 import hmac
 import os
 import re
+import secrets
 import uuid
-from datetime import date
+from datetime import date, timedelta
 
-from flask import Flask, jsonify, request
+import click
+from flask import Flask, jsonify, request, send_from_directory, session
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import selectinload
+from werkzeug.security import check_password_hash, generate_password_hash
 
-from models import db, UserDataTable, Major, Player, SportSeason, SportSeasonPlayer
+from models import (
+	db, UserDataTable, Major, Player, SportSeason, SportSeasonPlayer,
+	AdminAccount, RecruitmentSubmission
+)
+
+SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+SITE_FILES = {"main.html", "admin.html", "script.js", "admin.js", "style.css"}
+
+# These must match the <option> values in the join form in main.html.
+POSITION_CHOICES = {"Player", "Goalkeeper", "Defense", "Midfield", "Forward", "Other"}
+EXPERIENCE_CHOICES = {"No experience", "Beginner", "Intermediate", "Advanced", "Competitive"}
+
+EMAIL_PATTERN = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+MIN_ADMIN_PASSWORD_LENGTH = 10
+
+# Routes under /api/ that do not require the X-API-Key header.
+PUBLIC_API_PATHS = {"/api/recruitment"}
+SESSION_API_PREFIX = "/api/admin/"
 
 DEFAULT_CORS_ORIGINS = (
 	"http://localhost:3000,"
@@ -205,10 +225,20 @@ def configure_app(app):
 	if database_url.startswith("postgres://"):
 		database_url = "postgresql://" + database_url[len("postgres://"):]
 
+	secret_key = os.getenv("SECRET_KEY")
+	if not secret_key:
+		secret_key = secrets.token_hex(32)
+		app.logger.warning("SECRET_KEY is not set; admin sessions will reset when the server restarts.")
+
 	app.config.update(
 		SQLALCHEMY_DATABASE_URI=database_url,
 		SQLALCHEMY_TRACK_MODIFICATIONS=False,
-		API_KEY=os.getenv("API_KEY")
+		API_KEY=os.getenv("API_KEY"),
+		SECRET_KEY=secret_key,
+		SESSION_COOKIE_HTTPONLY=True,
+		SESSION_COOKIE_SAMESITE="Strict",
+		SESSION_COOKIE_SECURE=os.getenv("SESSION_COOKIE_SECURE", "false").strip().lower() in {"1", "true", "yes"},
+		PERMANENT_SESSION_LIFETIME=timedelta(hours=8)
 	)
 
 def configure_extensions(app):
@@ -217,7 +247,7 @@ def configure_extensions(app):
 		app,
 		resources={r"/api/*": {"origins": csv_env("CORS_ORIGINS", DEFAULT_CORS_ORIGINS)}},
 		allow_headers=["Content-Type", "X-API-Key"],
-		methods=["GET", "POST", "OPTIONS"],
+		methods=["GET", "POST", "DELETE", "OPTIONS"],
 		supports_credentials=False
 	)
 
@@ -233,6 +263,9 @@ def register_security(app):
 	@app.before_request
 	def require_api_key():
 		if not request.path.startswith("/api/") or request.method == "OPTIONS":
+			return None
+
+		if request.path in PUBLIC_API_PATHS or request.path.startswith(SESSION_API_PREFIX):
 			return None
 
 		configured_key = app.config.get("API_KEY")
@@ -275,10 +308,187 @@ def register_error_handlers(app):
 		return jsonify({"error": "Internal server error"}), 500
 
 def register_health_route(app, limiter):
-	@app.route("/", methods=["GET"])
+	@app.route("/health", methods=["GET"])
 	@limiter.limit("30 per minute", override_defaults=False)
-	def index():
+	def health():
 		return jsonify({"name": "Student/Sports API", "version": "1.0", "status": "online"})
+
+def register_site_routes(app):
+	@app.route("/", methods=["GET"])
+	def home_page():
+		return send_from_directory(SITE_DIR, "main.html")
+
+	@app.route("/admin", methods=["GET"])
+	def admin_page():
+		return send_from_directory(SITE_DIR, "admin.html")
+
+	@app.route("/<string:filename>", methods=["GET"])
+	def site_file(filename):
+		if filename not in SITE_FILES:
+			return jsonify({"error": "The resource not found"}), 404
+		return send_from_directory(SITE_DIR, filename)
+
+def validate_choice(value, field_name, choices):
+	value, error = validate_string(value, field_name, required=True)
+	if error:
+		return None, error
+	if value not in choices:
+		return None, f"{field_name} is not a valid option"
+	return value, None
+
+def validate_email(value, field_name="Email"):
+	email, error = validate_string(
+		value, field_name, True, column_max_length(RecruitmentSubmission, "Email")
+	)
+	if error:
+		return None, error
+	if EMAIL_PATTERN.fullmatch(email) is None:
+		return None, f"{field_name} is not a valid email address"
+	return email.lower(), None
+
+def validate_recruitment_data(data):
+	full_name, error = validate_string(
+		data.get("FullName"), "FullName", True, column_max_length(RecruitmentSubmission, "FullName")
+	)
+	if error:
+		return None, error
+
+	email, error = validate_email(data.get("Email"))
+	if error:
+		return None, error
+
+	position, error = validate_choice(data.get("Position"), "Position", POSITION_CHOICES)
+	if error:
+		return None, error
+
+	experience, error = validate_choice(
+		data.get("ExperienceLevel"), "ExperienceLevel", EXPERIENCE_CHOICES
+	)
+	if error:
+		return None, error
+
+	comments, error = validate_string(
+		data.get("Comments"), "Comments", False, column_max_length(RecruitmentSubmission, "Comments")
+	)
+	if error:
+		return None, error
+
+	return {
+		"FullName": full_name,
+		"Email": email,
+		"Position": position,
+		"ExperienceLevel": experience,
+		"Comments": comments
+	}, None
+
+def submission_to_dict(submission):
+	return {
+		"SubmissionID": submission.SubmissionID,
+		"FullName": submission.FullName,
+		"Email": submission.Email,
+		"Position": submission.Position,
+		"ExperienceLevel": submission.ExperienceLevel,
+		"Comments": submission.Comments,
+		"SubmittedAt": submission.SubmittedAt.isoformat() if submission.SubmittedAt else None
+	}
+
+def current_admin():
+	admin_id = session.get("admin_id")
+	if not admin_id:
+		return None
+	admin = db.session.get(AdminAccount, admin_id)
+	if admin is None:
+		session.clear()
+	return admin
+
+def register_recruitment_routes(app, limiter):
+	@app.route("/api/recruitment", methods=["POST"])
+	@limiter.limit("5 per minute; 30 per day", override_defaults=False)
+	def create_recruitment_submission():
+		data, error = request_object()
+		if error:
+			return error
+
+		submission_data, validation_error = validate_recruitment_data(data)
+		if validation_error:
+			return jsonify({"error": validation_error}), 400
+
+		submission = RecruitmentSubmission(SubmissionID=str(uuid.uuid4()), **submission_data)
+		db.session.add(submission)
+		db.session.commit()
+		return jsonify({"message": "Submission received"}), 201
+
+def register_admin_routes(app, limiter):
+	# Compared against when the email is unknown so login timing doesn't reveal which emails exist.
+	dummy_password_hash = generate_password_hash(secrets.token_hex(16))
+
+	@app.route("/api/admin/login", methods=["POST"])
+	@limiter.limit("5 per minute", override_defaults=False)
+	def admin_login():
+		data, error = request_object()
+		if error:
+			return error
+
+		email = data.get("Email")
+		password = data.get("Password")
+		if not isinstance(email, str) or not isinstance(password, str) or not email or not password:
+			return jsonify({"error": "Email and Password are required"}), 400
+
+		admin = db.session.scalar(
+			select(AdminAccount).where(AdminAccount.Email == email.strip().lower())
+		)
+		password_hash = admin.PasswordHash if admin else dummy_password_hash
+		if not check_password_hash(password_hash, password) or admin is None:
+			return jsonify({"error": "Invalid email or password"}), 401
+
+		session.clear()
+		session.permanent = True
+		session["admin_id"] = admin.AdminID
+		return jsonify({"Email": admin.Email})
+
+	@app.route("/api/admin/logout", methods=["POST"])
+	def admin_logout():
+		session.clear()
+		return jsonify({"message": "Logged out"})
+
+	@app.route("/api/admin/me", methods=["GET"])
+	def admin_me():
+		admin = current_admin()
+		if admin is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		return jsonify({"Email": admin.Email})
+
+	@app.route("/api/admin/recruitment", methods=["GET"])
+	@limiter.limit("60 per minute", override_defaults=False)
+	def admin_list_recruitment():
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+
+		page, per_page, error = pagination_values()
+		if error:
+			return error
+		pagination = db.paginate(
+			select(RecruitmentSubmission).order_by(
+				RecruitmentSubmission.SubmittedAt.desc(), RecruitmentSubmission.SubmissionID
+			),
+			page=page,
+			per_page=per_page,
+			error_out=False
+		)
+		return paginated_response("submissions", pagination, submission_to_dict)
+
+	@app.route("/api/admin/recruitment/<string:submission_id>", methods=["DELETE"])
+	@limiter.limit("30 per minute", override_defaults=False)
+	def admin_delete_recruitment(submission_id):
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+
+		submission = db.session.get(RecruitmentSubmission, submission_id)
+		if submission is None:
+			return jsonify({"error": "Submission was not found"}), 404
+		db.session.delete(submission)
+		db.session.commit()
+		return jsonify({"message": "Submission deleted"})
 
 def register_user_routes(app, limiter):
 	@app.route("/api/users", methods=["GET"])
@@ -496,6 +706,43 @@ def register_cli_commands(app):
 		db.create_all()
 		print("Database initialized.")
 
+	@app.cli.command("create-admin")
+	@click.option("--email", prompt=True)
+	@click.password_option()
+	def create_admin(email, password):
+		email, error = validate_email(email)
+		if error:
+			raise click.BadParameter(error, param_hint="--email")
+		if len(password) < MIN_ADMIN_PASSWORD_LENGTH:
+			raise click.BadParameter(
+				f"Password must be at least {MIN_ADMIN_PASSWORD_LENGTH} characters", param_hint="--password"
+			)
+
+		db.create_all()
+		admin = db.session.scalar(select(AdminAccount).where(AdminAccount.Email == email))
+		if admin is None:
+			db.session.add(AdminAccount(
+				AdminID=str(uuid.uuid4()), Email=email, PasswordHash=generate_password_hash(password)
+			))
+			print(f"Admin account created for {email}.")
+		else:
+			admin.PasswordHash = generate_password_hash(password)
+			print(f"Password updated for {email}.")
+		db.session.commit()
+
+	@app.cli.command("delete-admin")
+	@click.option("--email", prompt=True)
+	def delete_admin(email):
+		admin = db.session.scalar(
+			select(AdminAccount).where(AdminAccount.Email == email.strip().lower())
+		)
+		if admin is None:
+			print(f"No admin account found for {email}.")
+			return
+		db.session.delete(admin)
+		db.session.commit()
+		print(f"Admin account {admin.Email} deleted.")
+
 def create_app():
 	app = Flask(__name__)
 	configure_app(app)
@@ -503,6 +750,9 @@ def create_app():
 	register_security(app)
 	register_error_handlers(app)
 	register_health_route(app, limiter)
+	register_site_routes(app)
+	register_recruitment_routes(app, limiter)
+	register_admin_routes(app, limiter)
 	register_user_routes(app, limiter)
 	register_major_routes(app, limiter)
 	register_player_routes(app, limiter)

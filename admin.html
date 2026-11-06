@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+
+  <title>Admin | Team Website</title>
+
+  <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  >
+
+  <!--CSS-->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-light">
+
+<!--NAVBAR-->
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container">
+
+    <a class="navbar-brand fw-bold" href="/">TEAM NAME</a>
+
+    <div id="adminNavInfo" class="d-none">
+      <span id="adminEmail" class="text-white-50 me-3 small"></span>
+      <button id="logoutButton" class="btn btn-outline-light btn-sm">
+        Log Out
+      </button>
+    </div>
+
+  </div>
+</nav>
+
+
+<!--LOGIN-->
+<section id="loginSection" class="py-5 d-none">
+
+  <div class="container">
+
+    <div class="row justify-content-center">
+
+      <div class="col-md-6 col-lg-5">
+
+        <div class="section-heading text-center mb-4">
+          <span class="section-label">ADMIN</span>
+          <h2>Sign In</h2>
+        </div>
+
+        <div class="card shadow-sm border-0">
+
+          <div class="card-body p-4">
+
+            <form id="loginForm">
+
+              <div class="mb-3">
+                <label for="loginEmail" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="loginEmail" autocomplete="username" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="loginPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="loginPassword" autocomplete="current-password" required>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100">
+                Sign In
+              </button>
+
+            </form>
+
+            <div id="loginError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!--SUBMISSIONS-->
+<section id="submissionsSection" class="py-5 d-none">
+
+  <div class="container">
+
+    <div class="section-heading text-center mb-4">
+      <span class="section-label">RECRUITMENT</span>
+      <h2>Join Form Submissions</h2>
+      <p id="submissionCount" class="lead mb-0"></p>
+    </div>
+
+    <div id="submissionsError" class="alert alert-danger d-none" role="alert"></div>
+
+    <div class="card shadow-sm border-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">Submitted</th>
+              <th scope="col">Full Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Position / Role</th>
+              <th scope="col">Experience</th>
+              <th scope="col">Comments</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody id="submissionsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <nav class="d-flex justify-content-center align-items-center gap-3 mt-4">
+      <button id="prevPage" class="btn btn-outline-primary" disabled>Previous</button>
+      <span id="pageInfo" class="small text-muted"></span>
+      <button id="nextPage" class="btn btn-outline-primary" disabled>Next</button>
+    </nav>
+
+  </div>
+
+</section>
+
+
+<!--Custom JavaScript -->
+<script src="admin.js"></script>
+
+</body>
+</html>

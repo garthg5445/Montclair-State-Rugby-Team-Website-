@@ -361,56 +361,78 @@ const joinForm =
 
 if (joinForm) {
 
-  joinForm.addEventListener("submit", function(event) {
+  joinForm.addEventListener("submit", async function(event) {
 
     event.preventDefault();
 
 
-    const name =
-      document.getElementById("playerName").value;
-
-
-    const email =
-      document.getElementById("playerEmail").value;
-
-
-    const position =
-      document.getElementById("position").value;
-
-
-    const experience =
-      document.getElementById("experience").value;
-
-
-    const message =
-      document.getElementById("message").value;
-
-
-    /*The form only displays a confirmation due to the backend not being integrated yet*/
-
-    console.log("New player inquiry:", {
-      name,
-      email,
-      position,
-      experience,
-      message
-    });
+    const submission = {
+      FullName: document.getElementById("playerName").value,
+      Email: document.getElementById("playerEmail").value,
+      Position: document.getElementById("position").value,
+      ExperienceLevel: document.getElementById("experience").value,
+      Comments: document.getElementById("message").value
+    };
 
 
     const confirmation =
       document.getElementById("joinConfirmation");
 
+    const errorBox =
+      document.getElementById("joinError");
 
-    confirmation.classList.remove("d-none");
+    const submitButton =
+      joinForm.querySelector("button[type='submit']");
 
 
-    joinForm.reset();
+    confirmation.classList.add("d-none");
+    errorBox.classList.add("d-none");
+    submitButton.disabled = true;
 
 
-    confirmation.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
+    try {
+
+      const response = await fetch("/api/recruitment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submission)
+      });
+
+
+      if (!response.ok) {
+
+        const data = await response.json().catch(() => ({}));
+
+        throw new Error(
+          data.error || "Something went wrong. Please try again."
+        );
+
+      }
+
+
+      confirmation.classList.remove("d-none");
+
+      joinForm.reset();
+
+      confirmation.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+    } catch (error) {
+
+      errorBox.textContent =
+        error instanceof TypeError
+          ? "Could not reach the server. Please try again later."
+          : error.message;
+
+      errorBox.classList.remove("d-none");
+
+    } finally {
+
+      submitButton.disabled = false;
+
+    }
 
   });
 

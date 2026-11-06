@@ -211,6 +211,7 @@
                     type="text"
                     class="form-control"
                     id="playerName"
+                    maxlength="100"
                     required
                   >
                 </div>
@@ -225,6 +226,7 @@
                     type="email"
                     class="form-control"
                     id="playerEmail"
+                    maxlength="254"
                     required
                   >
                 </div>
@@ -287,6 +289,7 @@
                   class="form-control"
                   id="message"
                   rows="4"
+                  maxlength="2000"
                   placeholder="Tell us a little about yourself..."
                 ></textarea>
 
@@ -315,6 +318,12 @@
                 follow up with you about an upcoming practice.
               </p>
             </div>
+
+            <div
+              id="joinError"
+              class="alert alert-danger mt-4 d-none"
+              role="alert"
+            ></div>
 
           </div>
 
