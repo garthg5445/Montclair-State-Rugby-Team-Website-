@@ -389,12 +389,13 @@ if (joinForm) {
     errorBox.classList.add("d-none");
     submitButton.disabled = true;
 
-
+    //adding csrf
     try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
       const response = await fetch("/api/recruitment", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         body: JSON.stringify(submission)
       });
 

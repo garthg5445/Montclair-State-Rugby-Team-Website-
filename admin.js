@@ -8,12 +8,19 @@ const loginSection = document.getElementById("loginSection");
 const submissionsSection = document.getElementById("submissionsSection");
 const adminNavInfo = document.getElementById("adminNavInfo");
 
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
 async function api(path, options = {}) {
 
+ //Creating headers and adding CSRF if it exists
+  const headers = { "Content-Type": "application/json" };
+  if (csrfToken) {
+    headers["X-CSRF-Token"] = csrfToken;
+  }
+
   const response = await fetch(path, {
     credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
+    headers: headers,
     ...options
   });
 
@@ -192,7 +199,9 @@ document.getElementById("loginForm").addEventListener("submit", async event => {
       })
     });
     event.target.reset();
-    showSubmissions(data.Email);
+
+    window.location.reload(); //for reloading page to refresh CSRF token and load admin dashboard
+
   } catch (error) {
     showError(errorBox, error.message);
   }

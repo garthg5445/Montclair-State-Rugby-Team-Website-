@@ -6,10 +6,12 @@ import uuid
 from datetime import date, timedelta
 
 import click
-from flask import Flask, jsonify, request, send_from_directory, session
+from flask import Flask, jsonify, render_template, request, send_from_directory, session
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect, CSRFError #security
+from flask_talisman import Talisman #security import
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -19,6 +21,10 @@ from models import (
 	db, UserDataTable, Major, Player, SportSeason, SportSeasonPlayer,
 	AdminAccount, RecruitmentSubmission
 )
+
+#security import
+from dotenv import load_dotenv
+load_dotenv()
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 SITE_FILES = {"main.html", "admin.html", "script.js", "admin.js", "style.css"}
@@ -40,6 +46,8 @@ DEFAULT_CORS_ORIGINS = (
 	"http://localhost:5173,"
 	"http://127.0.0.1:5173"
 )
+
+csrf = CSRFProtect() #security
 
 def csv_env(name, default):
 	return [item.strip() for item in os.getenv(name, default).split(",") if item.strip()]
@@ -225,10 +233,15 @@ def configure_app(app):
 	if database_url.startswith("postgres://"):
 		database_url = "postgresql://" + database_url[len("postgres://"):]
 
+	#changed
 	secret_key = os.getenv("SECRET_KEY")
+	is_production = os.getenv("FLASK_DEBUG", "false").strip().lower() not in {"1", "true", "yes"}
+	
 	if not secret_key:
+		if is_production:
+			raise ValueError("FATAL: SECRET_KEY environment variable is not set. Refusing to start in production.")
 		secret_key = secrets.token_hex(32)
-		app.logger.warning("SECRET_KEY is not set; admin sessions will reset when the server restarts.")
+		app.logger.warning("SECRET_KEY is not set; using temporary key for development.")
 
 	app.config.update(
 		SQLALCHEMY_DATABASE_URI=database_url,
@@ -241,12 +254,28 @@ def configure_app(app):
 		PERMANENT_SESSION_LIFETIME=timedelta(hours=8)
 	)
 
+#security changes
 def configure_extensions(app):
 	db.init_app(app)
+	csrf.init_app(app)
+#security headers (CSP, HSTS, etc.)
+	#also added X-CSRF-Token under allow_headers
+	Talisman(
+		app,
+		content_security_policy={
+			'default-src': '\'self\'',
+			'script-src': ['\'self\'', 'https://cdn.jsdelivr.net'],
+			'style-src': ['\'self\'', '\'unsafe-inline\'', 'https://cdn.jsdelivr.net'],
+			'img-src': ['\'self\'', 'data:', 'https://images.unsplash.com', 'https://*.unsplash.com'],
+			'font-src': ['\'self\'', 'https://cdn.jsdelivr.net'],
+		},
+		force_https=os.getenv("SESSION_COOKIE_SECURE", "false").strip().lower() in {"1", "true", "yes"},
+	)
+
 	CORS(
 		app,
 		resources={r"/api/*": {"origins": csv_env("CORS_ORIGINS", DEFAULT_CORS_ORIGINS)}},
-		allow_headers=["Content-Type", "X-API-Key"],
+		allow_headers=["Content-Type", "X-API-Key", "X-CSRF-Token"],
 		methods=["GET", "POST", "DELETE", "OPTIONS"],
 		supports_credentials=False
 	)
@@ -316,17 +345,22 @@ def register_health_route(app, limiter):
 def register_site_routes(app):
 	@app.route("/", methods=["GET"])
 	def home_page():
-		return send_from_directory(SITE_DIR, "main.html")
+		return render_template("main.html")
 
 	@app.route("/admin", methods=["GET"])
 	def admin_page():
-		return send_from_directory(SITE_DIR, "admin.html")
+		return render_template("admin.html")
 
 	@app.route("/<string:filename>", methods=["GET"])
 	def site_file(filename):
 		if filename not in SITE_FILES:
 			return jsonify({"error": "The resource not found"}), 404
 		return send_from_directory(SITE_DIR, filename)
+
+	#added error handler for csrf
+	@app.errorhandler(CSRFError)
+	def handle_csrf_error(e):
+		return jsonify({"error": "CSRF token missing or invalid. Please refresh the page."}), 400
 
 def validate_choice(value, field_name, choices):
 	value, error = validate_string(value, field_name, required=True)
@@ -744,7 +778,7 @@ def register_cli_commands(app):
 		print(f"Admin account {admin.Email} deleted.")
 
 def create_app():
-	app = Flask(__name__)
+	app = Flask(__name__, template_folder=SITE_DIR) #added template folder
 	configure_app(app)
 	limiter = configure_extensions(app)
 	register_security(app)

@@ -98,6 +98,10 @@ class AdminAccount(db.Model):
     Email = db.Column(db.String(254), nullable=False, unique=True)
     PasswordHash = db.Column(db.Text, nullable=False)
     CreatedAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+    #jaosn22 changes 11/13/26
+    FailedLoginAttempts = db.Column(db.Integer, nullable=False, default=0)
+    LockedUntil = db.Column(db.DateTime, nullable=True)
+    TOTPSecret = db.Column(db.Text, nullable=True) #for MFA
 
 
 class RecruitmentSubmission(db.Model):
