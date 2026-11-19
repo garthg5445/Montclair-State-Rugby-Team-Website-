@@ -45,7 +45,7 @@ def example_request(method, endpoint, data=None):
 
 
 def run_examples():
-    example_request("GET", "/")
+    example_request("GET", "/health")
     example_request("GET", "/api/majors")
 
     example_request(

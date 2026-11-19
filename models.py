@@ -1,6 +1,12 @@
+from datetime import datetime, timezone
+
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
+
+
+def utc_now():
+    return datetime.now(timezone.utc)
 
 
 class UserDataTable(db.Model):
@@ -83,3 +89,28 @@ class SportSeasonPlayer(db.Model):
         "Player",
         foreign_keys=[PlayerID]
     )
+
+
+class AdminAccount(db.Model):
+    __tablename__ = "admin_account"
+
+    AdminID = db.Column("AdminID", db.Text, primary_key=True)
+    Email = db.Column(db.String(254), nullable=False, unique=True)
+    PasswordHash = db.Column(db.Text, nullable=False)
+    CreatedAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+    #jaosn22 changes 11/13/26
+    FailedLoginAttempts = db.Column(db.Integer, nullable=False, default=0)
+    LockedUntil = db.Column(db.DateTime, nullable=True)
+    TOTPSecret = db.Column(db.Text, nullable=True) #for MFA
+
+
+class RecruitmentSubmission(db.Model):
+    __tablename__ = "recruitment_submission"
+
+    SubmissionID = db.Column("SubmissionID", db.Text, primary_key=True)
+    FullName = db.Column(db.String(100), nullable=False)
+    Email = db.Column(db.String(254), nullable=False)
+    Position = db.Column(db.String(50), nullable=False)
+    ExperienceLevel = db.Column(db.String(50), nullable=False)
+    Comments = db.Column(db.String(2000))
+    SubmittedAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now, index=True)
