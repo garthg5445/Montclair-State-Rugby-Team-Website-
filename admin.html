@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
 
-  <title>Admin | Montclair State University Rugby Team</title>
+  <title>Admin | MSU Rugby Club</title>
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -17,17 +17,28 @@
     crossorigin="anonymous"
   >
 
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
   <!--CSS-->
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="bg-light">
+<body class="admin-page">
 
 <!--NAVBAR-->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark admin-navbar">
+<nav class="navbar navbar-expand-lg navbar-dark admin-navbar">
   <div class="container">
 
-    <a class="navbar-brand fw-bold" href="/">Montclair State University Rugby Team</a>
+    <a class="navbar-brand admin-brand" href="/">
+      <span>MSU RUGBY CLUB</span>
+      <small>ADMIN</small>
+    </a>
 
     <div class="ms-auto d-flex align-items-center flex-wrap justify-content-end">
       <a id="backHomeButton" class="nav-link admin-back-btn d-none" href="/">
@@ -60,11 +71,11 @@
       <div class="col-md-6 col-lg-5">
 
         <div class="section-heading text-center mb-4">
-          <span class="section-label">ADMIN</span>
-          <h2>Sign In</h2>
+          <span class="section-kicker">ADMIN</span>
+          <h2>SIGN IN</h2>
         </div>
 
-        <div class="card shadow-sm border-0">
+        <div class="admin-panel-card">
 
           <div class="card-body p-4">
 
@@ -80,7 +91,7 @@
                 <input type="password" class="form-control" id="loginPassword" autocomplete="current-password" required>
               </div>
 
-              <button type="submit" class="btn btn-primary w-100">
+              <button type="submit" class="btn btn-team w-100">
                 Sign In
               </button>
 
@@ -110,15 +121,15 @@
     <div class="container">
 
       <div class="section-heading text-center mb-4">
-        <span class="section-label">TEAM</span>
-        <h2>Schedule</h2>
+        <span class="section-kicker">TEAM</span>
+        <h2>SCHEDULE</h2>
         <p class="lead mb-0">Add practices and games for the welcome page.</p>
       </div>
 
       <div id="eventsError" class="alert alert-danger d-none" role="alert"></div>
       <div id="eventsSuccess" class="alert alert-success d-none" role="alert"></div>
 
-      <div class="card shadow-sm border-0 mb-4">
+      <div class="admin-panel-card mb-4">
         <div class="card-body p-4">
           <h3 class="h5 mb-3" id="eventFormTitle">Add Event</h3>
           <form id="eventForm">
@@ -172,14 +183,14 @@
             </div>
 
             <div class="d-flex gap-2 mt-4">
-              <button type="submit" class="btn btn-primary" id="eventSubmitButton">Add Event</button>
+              <button type="submit" class="btn btn-team" id="eventSubmitButton">Add Event</button>
               <button type="button" class="btn btn-outline-secondary d-none" id="eventCancelEdit">Cancel Edit</button>
             </div>
           </form>
         </div>
       </div>
 
-      <div class="card shadow-sm border-0">
+      <div class="admin-panel-card">
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-dark">
@@ -210,15 +221,15 @@
     <div class="container">
 
       <div class="section-heading text-center mb-4">
-        <span class="section-label">RESULTS</span>
-        <h2>Season Records</h2>
+        <span class="section-kicker">RESULTS</span>
+        <h2>SEASON RECORDS</h2>
         <p class="lead mb-0">Track wins and losses by season. The current season appears under Schedule on the home page.</p>
       </div>
 
       <div id="seasonRecordsError" class="alert alert-danger d-none" role="alert"></div>
       <div id="seasonRecordsSuccess" class="alert alert-success d-none" role="alert"></div>
 
-      <div class="card shadow-sm border-0 mb-4">
+      <div class="admin-panel-card mb-4">
         <div class="card-body p-4">
           <h3 class="h5 mb-3" id="seasonRecordFormTitle">Add Season Record</h3>
           <form id="seasonRecordForm">
@@ -239,14 +250,14 @@
               </div>
             </div>
             <div class="d-flex gap-2 mt-4">
-              <button type="submit" class="btn btn-primary" id="seasonRecordSubmitButton">Add Season Record</button>
+              <button type="submit" class="btn btn-team" id="seasonRecordSubmitButton">Add Season Record</button>
               <button type="button" class="btn btn-outline-secondary d-none" id="seasonRecordCancelEdit">Cancel Edit</button>
             </div>
           </form>
         </div>
       </div>
 
-      <div class="card shadow-sm border-0">
+      <div class="admin-panel-card">
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-dark">
@@ -273,15 +284,15 @@
     <div class="container">
 
       <div class="section-heading text-center mb-4">
-        <span class="section-label">LEADERSHIP</span>
-        <h2>Staff</h2>
+        <span class="section-kicker">LEADERSHIP</span>
+        <h2>STAFF</h2>
         <p class="lead mb-0">Update the president, coach, and captain shown on the site.</p>
       </div>
 
       <div class="row g-4">
 
         <div class="col-md-4">
-          <div class="card shadow-sm border-0 h-100">
+          <div class="admin-panel-card h-100">
             <div class="card-body p-4">
               <h3 class="h5 mb-3">President</h3>
               <form id="presidentForm">
@@ -289,7 +300,7 @@
                   <label for="presidentName" class="form-label">Name</label>
                   <input type="text" class="form-control" id="presidentName" maxlength="100">
                 </div>
-                <button type="submit" class="btn btn-primary">Save President</button>
+                <button type="submit" class="btn btn-team">Save President</button>
               </form>
               <div id="presidentError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
               <div id="presidentSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>
@@ -298,7 +309,7 @@
         </div>
 
         <div class="col-md-4">
-          <div class="card shadow-sm border-0 h-100">
+          <div class="admin-panel-card h-100">
             <div class="card-body p-4">
               <h3 class="h5 mb-3">Coach</h3>
               <form id="coachForm">
@@ -306,7 +317,7 @@
                   <label for="coachName" class="form-label">Name</label>
                   <input type="text" class="form-control" id="coachName" maxlength="100">
                 </div>
-                <button type="submit" class="btn btn-primary">Save Coach</button>
+                <button type="submit" class="btn btn-team">Save Coach</button>
               </form>
               <div id="coachError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
               <div id="coachSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>
@@ -315,7 +326,7 @@
         </div>
 
         <div class="col-md-4">
-          <div class="card shadow-sm border-0 h-100">
+          <div class="admin-panel-card h-100">
             <div class="card-body p-4">
               <h3 class="h5 mb-3">Captain</h3>
               <form id="captainForm">
@@ -323,7 +334,7 @@
                   <label for="captainName" class="form-label">Name</label>
                   <input type="text" class="form-control" id="captainName" maxlength="100">
                 </div>
-                <button type="submit" class="btn btn-primary">Save Captain</button>
+                <button type="submit" class="btn btn-team">Save Captain</button>
               </form>
               <div id="captainError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
               <div id="captainSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>
@@ -344,14 +355,14 @@
     <div class="container">
 
       <div class="section-heading text-center mb-4">
-        <span class="section-label">RECRUITMENT</span>
-        <h2>Join Form Submissions</h2>
+        <span class="section-kicker">RECRUITMENT</span>
+        <h2>JOIN FORM SUBMISSIONS</h2>
         <p id="submissionCount" class="lead mb-0"></p>
       </div>
 
       <div id="submissionsError" class="alert alert-danger d-none" role="alert"></div>
 
-      <div class="card shadow-sm border-0">
+      <div class="admin-panel-card">
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-dark">

@@ -27,11 +27,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
-SITE_FILES = {"main.html", "admin.html", "script.js", "admin.js", "style.css"}
+SITE_FILES = {"index.html", "main.html", "admin.html", "script.js", "admin.js", "style.css"}
 
-# These must match the <option> values in the join form in main.html.
-POSITION_CHOICES = {"Player", "Goalkeeper", "Defense", "Midfield", "Forward", "Other"}
-EXPERIENCE_CHOICES = {"No experience", "Beginner", "Intermediate", "Advanced", "Competitive"}
+# These must match the <option> values in the join form in index.html.
+POSITION_CHOICES = {
+	"Loosehead Prop (1)", "Hooker (2)", "Tighthead Prop (3)", "Lock (4)", "Lock (5)",
+	"Blindside Flanker (6)", "Openside Flanker (7)", "Number 8 (8)",
+	"Scrum-half (9)", "Fly-half (10)", "Left Wing (11)", "Inside Centre (12)",
+	"Outside Centre (13)", "Right Wing (14)", "Full-back (15)", "Not Sure Yet"
+}
+EXPERIENCE_CHOICES = {"None", "Beginner", "Intermediate", "Advanced"}
 
 EMAIL_PATTERN = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 MIN_ADMIN_PASSWORD_LENGTH = 10
@@ -354,7 +359,7 @@ def register_health_route(app, limiter):
 def register_site_routes(app):
 	@app.route("/", methods=["GET"])
 	def home_page():
-		return render_template("main.html")
+		return render_template("index.html")
 
 	@app.route("/admin", methods=["GET"])
 	def admin_page():

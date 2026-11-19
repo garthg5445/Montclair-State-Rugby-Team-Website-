@@ -167,65 +167,83 @@ async function loadSchedule() {
   renderSchedule();
 }
 
-function setStaffName(nameId, name) {
-  const nameEl = document.getElementById(nameId);
-  if (nameEl && name) {
-    nameEl.textContent = name;
-  }
+function renderStaff(staff) {
+  const container = document.getElementById("staffList");
+  if (!container) return;
+
+  const roles = [
+    { key: "PresidentName", label: "CLUB PRESIDENT" },
+    { key: "CoachName", label: "HEAD COACH" },
+    { key: "CaptainName", label: "TEAM CAPTAIN" }
+  ];
+
+  container.innerHTML = roles.map(role => {
+    const name = (staff?.[role.key] || "").trim();
+    return `
+      <div class="col-md-4">
+        <div class="coach-card">
+          <div class="coach-photo">MSU</div>
+          <div>
+            <span>${role.label}</span>
+            <h3>${name || "TO BE ANNOUNCED"}</h3>
+            <p>${name ? "Managed from the club admin panel." : "Leadership details will appear here once added."}</p>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
 }
 
 async function loadStaff() {
   try {
     const response = await fetch("/api/staff");
     if (!response.ok) throw new Error("Failed to load staff");
-    const data = await response.json();
-    setStaffName("presidentName", data.PresidentName);
-    setStaffName("coachName", data.CoachName);
-    setStaffName("captainName", data.CaptainName);
+    renderStaff(await response.json());
   } catch (error) {
-    // Keep placeholder content if staff cannot be loaded.
+    renderStaff({});
   }
 }
 
-function formatRecordLine(prefix, wins, losses, seasonLabel) {
-  const winText = `${wins} win${wins === 1 ? "" : "s"}`;
-  const lossText = `${losses} loss${losses === 1 ? "" : "es"}`;
-  if (seasonLabel) {
-    return `${prefix} ${winText}, ${lossText} (${seasonLabel})`;
-  }
-  return `${prefix} ${winText}, ${lossText}`;
+function renderSeasonRecordBand(container, kicker, title, wins, losses) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="season-record-copy">
+      <span class="section-kicker">${kicker}</span>
+      <h3>${title}</h3>
+    </div>
+    <div class="season-record-score">
+      <strong>${wins}-${losses}</strong>
+      <span>WINS · LOSSES</span>
+    </div>`;
 }
 
 async function loadSeasonRecords() {
-  const teamRecord = document.getElementById("teamRecord");
-  const careerRecord = document.getElementById("careerRecord");
+  const currentBox = document.getElementById("currentSeasonRecord");
+  const historyBox = document.getElementById("allTimeRecord");
 
   try {
     const response = await fetch("/api/season-records");
     if (!response.ok) throw new Error("Failed to load season records");
     const data = await response.json();
-    const current = data.currentRecord || { Wins: 0, Losses: 0 };
+    const current = data.currentRecord || { SeasonLabel: data.currentSeason || "", Wins: 0, Losses: 0 };
     const allTime = data.allTime || { Wins: 0, Losses: 0 };
 
-    if (teamRecord) {
-      teamRecord.textContent = formatRecordLine(
-        "Team Record:",
-        current.Wins || 0,
-        current.Losses || 0,
-        data.currentSeason
-      );
-    }
-
-    if (careerRecord) {
-      careerRecord.textContent = formatRecordLine(
-        "All-time record:",
-        allTime.Wins || 0,
-        allTime.Losses || 0
-      );
-    }
+    renderSeasonRecordBand(
+      currentBox,
+      "CURRENT SEASON",
+      `${current.SeasonLabel || "SEASON"} RECORD`,
+      current.Wins || 0,
+      current.Losses || 0
+    );
+    renderSeasonRecordBand(
+      historyBox,
+      "ALL-TIME",
+      "CLUB RECORD",
+      allTime.Wins || 0,
+      allTime.Losses || 0
+    );
   } catch (error) {
-    if (teamRecord) teamRecord.textContent = "Team Record: —";
-    if (careerRecord) careerRecord.textContent = "All-time record: —";
+    renderSeasonRecordBand(currentBox, "CURRENT SEASON", "SEASON RECORD", 0, 0);
+    renderSeasonRecordBand(historyBox, "ALL-TIME", "CLUB RECORD", 0, 0);
   }
 }
 
@@ -239,7 +257,7 @@ function setupMessageCounter() {
 
   const updateCounter = () => {
     const length = message.value.length;
-    counter.textContent = `${length}/${maxLength}`;
+    counter.textContent = `${length} / ${maxLength}`;
 
     if (warning) {
       if (length >= maxLength) {

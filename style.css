@@ -72,9 +72,11 @@ a {
 ===================================================== */
 
 .top-bar {
-  background: var(--black);
+  background: #ffffff;
 
-  color: white;
+  color: #000000;
+
+  border-bottom: 1px solid #e5e5e5;
 
   padding: 8px 0;
 
@@ -86,7 +88,7 @@ a {
 }
 
 .top-links a {
-  color: #ccc;
+  color: #000000;
 
   margin-left: 20px;
 
@@ -94,7 +96,7 @@ a {
 }
 
 .top-links a:hover {
-  color: white;
+  color: var(--team-primary);
 }
 
 
@@ -119,7 +121,7 @@ a {
 
   gap: 12px;
 
-  color: #ffffff !important;
+  color: #000000 !important;
 
   padding: 12px 0;
 }
@@ -166,7 +168,7 @@ a {
 }
 
 .nav-link {
-  color: #ffffff !important;
+  color: #000000 !important;
 
   font-family: "Barlow Condensed", sans-serif;
 
@@ -185,10 +187,29 @@ a {
   color: var(--team-primary) !important;
 }
 
+.login-nav {
+  border: 2px solid var(--black);
+
+  color: #000000 !important;
+
+  margin-left: 8px;
+
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+}
+
+.login-nav:hover {
+  background: var(--black);
+
+  color: #ffffff !important;
+}
+
 .join-nav {
   background: var(--team-primary);
 
   color: white !important;
+
+  margin-left: 8px;
 
   padding-left: 22px !important;
   padding-right: 22px !important;
@@ -236,10 +257,12 @@ a {
   opacity: 0.7;
 
   pointer-events: none;
+
+  color: #000000 !important;
 }
 
 .admin-navbar .admin-email:hover {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 #admin-schedule,
@@ -1484,4 +1507,136 @@ footer hr {
   border-left: 5px solid var(--team-primary);
   padding: 24px;
   color: var(--team-gray);
+}
+
+/* =====================================================
+   ADMIN + PUBLIC INTEGRATION
+===================================================== */
+
+.admin-page {
+  background: #f6f6f6;
+  min-height: 100vh;
+}
+
+.admin-navbar {
+  background: #ffffff;
+  min-height: 88px;
+  border-bottom: 4px solid var(--team-primary);
+}
+
+.admin-navbar .nav-link {
+  color: #000000 !important;
+}
+
+.admin-navbar .nav-link:hover {
+  color: var(--team-primary) !important;
+}
+
+.admin-brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  font-family: "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  color: #000000 !important;
+}
+
+.admin-brand span {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #000000;
+}
+
+.admin-brand small {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  color: #000000;
+  opacity: 0.7;
+}
+
+.admin-panel-card {
+  background: #fff;
+  border: 0;
+  border-left: 5px solid var(--team-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  margin-bottom: 1.5rem;
+}
+
+.admin-page .section-heading h2 {
+  letter-spacing: 0.03em;
+}
+
+.admin-page .table thead {
+  background: var(--black);
+  color: #fff;
+}
+
+.season-record-band {
+  margin-top: 2rem;
+  padding: 1.5rem 1.75rem;
+  background: var(--black);
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.season-record-band.history-record {
+  margin: 0 0 2rem;
+  background: var(--team-primary);
+}
+
+.season-record-copy .section-kicker {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.season-record-copy h3 {
+  margin: 0.35rem 0 0;
+  color: #fff;
+  font-size: 2rem;
+}
+
+.season-record-score {
+  text-align: right;
+}
+
+.season-record-score strong {
+  display: block;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.season-record-score span {
+  letter-spacing: 0.14em;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.char-count-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--team-gray);
+}
+
+.char-limit-warning {
+  color: var(--team-primary);
+  font-weight: 700;
+}
+
+@media (max-width: 576px) {
+  .season-record-band {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .season-record-score {
+    text-align: left;
+  }
 }
