@@ -1,17 +1,65 @@
-/*GENERAL*/
+/* =====================================================
+   MSU RUGBY CLUB BRANDING
+===================================================== */
+
+:root {
+
+  --team-primary: #b5121b;
+  --team-primary-dark: #800c13;
+  --team-secondary: #111111;
+
+  --team-light: #f4f4f4;
+  --team-gray: #777777;
+
+  --white: #ffffff;
+  --black: #0b0b0b;
+
+}
+
+
+/* =====================================================
+   GENERAL
+===================================================== */
 
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #212529;
-  line-height: 1.6;
+  margin: 0;
+
+  font-family: "Inter", sans-serif;
+
+  color: var(--black);
+
+  background: var(--white);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+.navbar-brand,
+.btn,
+.section-kicker,
+.match-heading,
+.news-date,
+.schedule-filter,
+.stat,
+.hero-label {
+  font-family: "Barlow Condensed", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 800;
 }
 
 section {
-  scroll-margin-top: 70px;
+  scroll-margin-top: 90px;
 }
 
 a {
@@ -19,451 +67,1346 @@ a {
 }
 
 
-/*NAVBAR*/
+/* =====================================================
+   TOP BAR
+===================================================== */
 
-.navbar {
-  padding: 1rem 0;
-}
+.top-bar {
+  background: var(--black);
 
-.navbar-brand {
-  letter-spacing: 1px;
-}
-
-.nav-link {
-  margin-left: 0.5rem;
-  transition: 0.2s ease;
-}
-
-.nav-link:hover {
-  color: #ffc107 !important;
-}
-
-
-/* HERO*/
-
-.hero-section {
-  min-height: 650px;
-
-  background-image:
-    linear-gradient(
-      rgba(0, 0, 0, 0.55),
-      rgba(0, 0, 0, 0.65)
-    ),
-    url("https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1800&q=80");
-
-  background-size: cover;
-  background-position: center;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  position: relative;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 2;
-  max-width: 850px;
-}
-
-.hero-section h1 {
-  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
-}
-
-.hero-section .lead {
-  font-size: 1.4rem;
-}
-
-.hero-buttons .btn {
-  margin-bottom: 0.5rem;
-}
-
-
-/*SECTION HEADINGS*/
-
-.section-heading h2 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.section-label {
-  display: inline-block;
-  color: #0d6efd;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  margin-bottom: 0.5rem;
-}
-
-
-/*INFO CARDS*/
-
-.info-card {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
-  height: 100%;
-
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.info-card:hover {
-  transform: translateY(-5px);
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.12);
-}
-
-.info-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-
-/*NEXT EVENT*/
-
-.next-event-card {
-  background: #0d6efd;
   color: white;
 
-  border-radius: 20px;
+  padding: 8px 0;
 
-  padding: 3rem;
-
-  text-align: center;
-
-  box-shadow: 0 10px 30px rgba(13, 110, 253, 0.25);
-}
-
-.next-event-card h3 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.next-event-date {
-  font-size: 1.3rem;
-  font-weight: 700;
-}
-
-.next-event-location {
-  opacity: 0.9;
-}
-
-
-/*SCHEDULE*/
-
-.schedule-card {
-  height: 100%;
-
-  border: 1px solid #e5e5e5;
-
-  border-radius: 15px;
-
-  padding: 1.5rem;
-
-  background: white;
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.schedule-card:hover {
-  transform: translateY(-4px);
-
-  box-shadow:
-    0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.schedule-card.cancelled {
-  border: 2px solid #dc3545;
-  background: #fff5f5;
-}
-
-.schedule-type {
   font-size: 0.75rem;
-  font-weight: 700;
 
   letter-spacing: 1px;
 
   text-transform: uppercase;
-
-  margin-bottom: 0.5rem;
 }
 
-.schedule-date {
-  font-size: 1.4rem;
-  font-weight: 700;
+.top-links a {
+  color: #ccc;
+
+  margin-left: 20px;
+
+  transition: color 0.2s ease;
 }
 
-.schedule-location {
-  color: #6c757d;
-}
-
-.result {
-  font-weight: 700;
-}
-
-
-/*FILTER BUTTONS*/
-
-.schedule-filter {
-  margin: 0.25rem;
-}
-
-.schedule-filter.active {
-  background-color: #0d6efd;
+.top-links a:hover {
   color: white;
 }
 
 
-/*TIMELINE*/
+/* =====================================================
+   NAVBAR
+===================================================== */
 
-.timeline {
-  max-width: 850px;
-  margin: 0 auto;
-
-  position: relative;
-}
-
-.timeline::before {
-  content: "";
-
-  position: absolute;
-
-  left: 80px;
-
-  top: 0;
-  bottom: 0;
-
-  width: 3px;
-
-  background: #0d6efd;
-}
-
-.timeline-item {
-  position: relative;
-
-  display: grid;
-
-  grid-template-columns: 140px 1fr;
-
-  gap: 2rem;
-
-  margin-bottom: 3rem;
-}
-
-.timeline-year {
-  font-size: 1.4rem;
-
-  font-weight: 700;
-
-  color: #0d6efd;
-
-  text-align: right;
-}
-
-.timeline-content {
+.main-navbar {
   background: white;
 
-  padding: 1.5rem;
+  border-bottom: 4px solid var(--team-primary);
 
-  border-radius: 12px;
+  padding: 0;
 
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+  z-index: 1000;
 }
 
+.navbar-brand {
+  display: flex;
 
-/*ROSTER*/
+  align-items: center;
 
-.person-card {
-  height: 100%;
+  gap: 12px;
 
-  padding: 2rem;
+  color: var(--black) !important;
 
-  border-radius: 15px;
-
-  background: white;
-
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-
-  transition: transform 0.2s ease;
+  padding: 12px 0;
 }
 
-.person-card:hover {
-  transform: translateY(-5px);
-}
-
-.person-avatar {
-  width: 100px;
-  height: 100px;
-
-  margin: 0 auto 1.5rem;
+.logo-placeholder {
+  width: 55px;
+  height: 55px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 50%;
+  background: var(--team-primary);
 
-  background: #e9f2ff;
+  color: white;
 
-  font-size: 3rem;
+  font-size: 0.7rem;
+
+  font-weight: 800;
+
+  transform: skew(-8deg);
+}
+
+.brand-text {
+  display: flex;
+
+  flex-direction: column;
+
+  line-height: 1;
+}
+
+.brand-text span {
+  font-size: 1.5rem;
+
+  font-weight: 800;
+}
+
+.brand-text small {
+  font-size: 0.55rem;
+
+  letter-spacing: 2px;
+
+  margin-top: 5px;
+}
+
+.nav-link {
+  color: var(--black) !important;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-size: 1rem;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  padding: 25px 15px !important;
+
+  transition: 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--team-primary) !important;
+}
+
+.join-nav {
+  background: var(--team-primary);
+
+  color: white !important;
+
+  padding-left: 22px !important;
+  padding-right: 22px !important;
+}
+
+.join-nav:hover {
+  background: var(--team-primary-dark);
+
+  color: white !important;
 }
 
 
-/*MEDIA*/
+/* =====================================================
+   HERO
+===================================================== */
 
-.media-card {
+.hero {
+  position: relative;
+
+  min-height: 680px;
+
+  display: flex;
+
+  align-items: center;
+
+  overflow: hidden;
+
+  background: var(--black);
+}
+
+.hero-image {
+  position: absolute;
+
+  inset: 0;
+
+  background-image:
+    url("https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=2000&q=85");
+
+  background-size: cover;
+
+  background-position: center;
+
+  opacity: 0.8;
+}
+
+.hero-overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.9),
+      rgba(0, 0, 0, 0.55),
+      rgba(0, 0, 0, 0.25)
+    );
+}
+
+.hero-content {
+  position: relative;
+
+  z-index: 2;
+
+  color: white;
+
+  padding-top: 70px;
+}
+
+.hero-label {
+  color: #ddd;
+
+  font-size: 1rem;
+
+  font-weight: 700;
+
+  letter-spacing: 4px;
+
+  margin-bottom: 15px;
+}
+
+.hero h1 {
+  font-size: clamp(4.5rem, 10vw, 9rem);
+
+  line-height: 0.8;
+
+  letter-spacing: -3px;
+
+  margin: 0 0 35px;
+}
+
+.hero h1 span {
+  color: var(--team-primary);
+}
+
+.hero p {
+  max-width: 600px;
+
+  font-size: 1.2rem;
+
+  color: #eee;
+
+  margin-bottom: 30px;
+}
+
+.hero-buttons .btn {
+  padding: 14px 30px;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 800;
+
+  letter-spacing: 1px;
+
+  margin-right: 8px;
+
+  margin-bottom: 8px;
+}
+
+.btn-team {
+  background: var(--team-primary);
+
+  color: white;
+
+  border: 2px solid var(--team-primary);
+
+  font-weight: 800;
+}
+
+.btn-team:hover {
+  background: var(--team-primary-dark);
+
+  border-color: var(--team-primary-dark);
+
+  color: white;
+}
+
+.hero-scroll {
+  position: absolute;
+
+  bottom: 25px;
+
+  right: 5%;
+
+  color: white;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-size: 0.8rem;
+
+  letter-spacing: 2px;
+
+  opacity: 0.7;
+}
+
+
+/* =====================================================
+   MATCH CENTER
+===================================================== */
+
+.match-center {
+  background: var(--team-primary);
+
+  color: white;
+
+  padding: 45px 0;
+}
+
+.match-heading {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: end;
+
+  margin-bottom: 20px;
+}
+
+.match-heading span {
+  font-size: 0.9rem;
+
+  letter-spacing: 3px;
+
+  font-weight: 700;
+}
+
+.match-heading h2 {
+  margin: 0;
+
+  font-size: 2.2rem;
+}
+
+.match-card {
   background: white;
 
-  border-radius: 15px;
+  color: var(--black);
 
-  padding: 3rem;
+  display: grid;
+
+  grid-template-columns: 1fr 180px 1fr;
+
+  align-items: center;
 
   text-align: center;
 
+  min-height: 190px;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.match-team {
+  padding: 30px;
+}
+
+.match-team h3 {
+  font-size: 2rem;
+
+  margin: 5px 0;
+}
+
+.match-team span {
+  font-size: 0.75rem;
+
+  color: var(--team-gray);
+
+  letter-spacing: 2px;
+}
+
+.match-vs {
+  border-left: 1px solid #ddd;
+
+  border-right: 1px solid #ddd;
+
   height: 100%;
 
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+.match-vs strong {
+  font-size: 2rem;
+}
+
+.match-vs span {
+  font-size: 0.75rem;
+
+  color: var(--team-gray);
+
+  margin-top: 5px;
+}
+
+
+/* =====================================================
+   SECTIONS
+===================================================== */
+
+.section {
+  padding: 90px 0;
+}
+
+.section-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: end;
+
+  margin-bottom: 40px;
+
+  border-bottom: 2px solid #ddd;
+
+  padding-bottom: 15px;
+}
+
+.section-kicker {
+  display: block;
+
+  color: var(--team-primary);
+
+  font-size: 0.9rem;
+
+  font-weight: 800;
+
+  letter-spacing: 3px;
+
+  margin-bottom: 5px;
+}
+
+.section-header h2 {
+  font-size: 4rem;
+
+  line-height: 0.9;
+
+  margin: 0;
+}
+
+.view-all {
+  color: var(--team-primary);
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.view-all:hover {
+  color: var(--team-primary-dark);
+}
+
+
+/* =====================================================
+   NEWS
+===================================================== */
+
+.news-section {
+  background: white;
+}
+
+.placeholder-image {
+  background:
+    linear-gradient(
+      135deg,
+      #444,
+      #888
+    );
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 800;
+
+  letter-spacing: 3px;
+}
+
+.news-image {
+  height: 360px;
+}
+
+.news-content {
+  padding: 25px 0;
+}
+
+.news-date {
+  color: var(--team-primary);
+
+  font-size: 0.8rem;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+.news-content h3 {
+  font-size: 2.3rem;
+
+  margin: 8px 0;
+}
+
+.news-content p {
+  color: var(--team-gray);
+
+  max-width: 650px;
+}
+
+.news-content a,
+.small-news a {
+  color: var(--team-primary);
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 800;
+}
+
+.small-news {
+  display: grid;
+
+  grid-template-columns: 150px 1fr;
+
+  gap: 20px;
+
+  padding-bottom: 20px;
+
+  margin-bottom: 20px;
+
+  border-bottom: 1px solid #ddd;
+}
+
+.small-news-image {
+  min-height: 110px;
+
+  background: #555;
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-size: 0.8rem;
+
+  letter-spacing: 2px;
+}
+
+.small-news h4 {
+  font-size: 1.4rem;
+
+  margin: 5px 0 10px;
+}
+
+
+/* =====================================================
+   ABOUT
+===================================================== */
+
+.about-section {
+  background: var(--black);
+
+  color: white;
+
+  padding: 100px 0;
+}
+
+.about-image {
+  min-height: 500px;
+}
+
+.about-section h2 {
+  font-size: 5rem;
+
+  line-height: 0.85;
+}
+
+.about-section h2 span {
+  color: var(--team-primary);
+}
+
+.about-section .lead {
+  font-size: 1.25rem;
+}
+
+.about-section p {
+  color: #ccc;
+}
+
+
+/* =====================================================
+   STATS
+===================================================== */
+
+.stats-section {
+  background: var(--team-primary);
+
+  color: white;
+
+  padding: 40px 0;
+}
+
+.stat {
+  border-right: 1px solid rgba(255,255,255,0.3);
+
+  padding: 10px;
+}
+
+.stat:last-child {
+  border-right: none;
+}
+
+.stat strong {
+  display: block;
+
+  font-size: 3.5rem;
+
+  line-height: 1;
+}
+
+.stat span {
+  display: block;
+
+  font-size: 0.8rem;
+
+  letter-spacing: 2px;
+
+  margin-top: 5px;
+}
+
+
+/* =====================================================
+   SCHEDULE
+===================================================== */
+
+.schedule-section {
+  background: #f3f3f3;
+}
+
+.schedule-controls {
+  display: flex;
+
+  gap: 10px;
+
+  margin-bottom: 30px;
+}
+
+.schedule-filter {
+  border: 2px solid var(--black);
+
+  background: transparent;
+
+  padding: 8px 20px;
+
+  font-weight: 800;
+
+  letter-spacing: 1px;
+}
+
+.schedule-filter.active,
+.schedule-filter:hover {
+  background: var(--black);
+
+  color: white;
+}
+
+.schedule-row {
+  background: white;
+
+  border-left: 5px solid var(--team-primary);
+
+  margin-bottom: 12px;
+
+  display: grid;
+
+  grid-template-columns: 110px 1fr 220px 160px;
+
+  align-items: center;
+
+  padding: 20px 25px;
+
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.schedule-date {
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 800;
+
+  font-size: 1.3rem;
+}
+
+.schedule-date span {
+  display: block;
+
+  font-size: 0.7rem;
+
+  color: var(--team-primary);
+
+  letter-spacing: 1px;
+}
+
+.schedule-opponent h3 {
+  margin: 0;
+
+  font-size: 1.5rem;
+}
+
+.schedule-opponent span {
+  color: var(--team-gray);
+
+  font-size: 0.8rem;
+}
+
+.schedule-location {
+  color: var(--team-gray);
+}
+
+.schedule-result {
+  text-align: right;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 800;
+
+  font-size: 1.2rem;
+}
+
+.schedule-cancelled {
+  color: #dc3545;
+}
+
+
+/* =====================================================
+   JOIN
+===================================================== */
+
+.join-section {
+  background: var(--team-primary);
+
+  color: white;
+
+  padding: 100px 0;
+}
+
+.join-section h2 {
+  font-size: 6rem;
+
+  line-height: 0.8;
+}
+
+.join-section h2 span {
+  color: var(--black);
+}
+
+.join-section p {
+  color: #f0f0f0;
+}
+
+.recruiting-points {
+  margin-top: 30px;
+}
+
+.recruiting-points div {
+  font-weight: 600;
+
+  margin-bottom: 10px;
+}
+
+.join-card {
+  background: white;
+
+  color: var(--black);
+
+  padding: 40px;
+
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+.join-card h3 {
+  font-size: 2.5rem;
+}
+
+.join-card label {
+  display: block;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 700;
+
+  font-size: 0.8rem;
+
+  letter-spacing: 1px;
+
+  margin-bottom: 5px;
+}
+
+.join-card .form-control,
+.join-card .form-select {
+  border-radius: 0;
+
+  border: 1px solid #bbb;
+
+  padding: 12px;
+}
+
+
+/* =====================================================
+   ROSTER
+===================================================== */
+
+.roster-section {
+  background: white;
+}
+
+.player-card {
+  background: #f2f2f2;
 
   transition: transform 0.2s ease;
 }
 
-.media-card:hover {
+.player-card:hover {
   transform: translateY(-5px);
 }
 
-.media-icon {
+.player-photo {
+  height: 280px;
+
+  background: linear-gradient(135deg, #333, #777);
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 800;
+
+  letter-spacing: 3px;
+}
+
+.player-info {
+  padding: 18px;
+}
+
+.player-info > span {
+  color: var(--team-primary);
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-size: 0.8rem;
+
+  font-weight: 800;
+
+  letter-spacing: 1px;
+}
+
+.player-info h3 {
+  font-size: 1.7rem;
+
+  margin: 3px 0;
+}
+
+.player-info p {
+  margin: 0;
+
+  color: var(--team-gray);
+
+  font-size: 0.85rem;
+}
+
+
+/* =====================================================
+   COACHES
+===================================================== */
+
+.coaches-section {
+  background: #f3f3f3;
+
+  padding: 90px 0;
+}
+
+.coach-card {
+  background: white;
+
+  display: flex;
+
+  gap: 20px;
+
+  align-items: center;
+
+  padding: 20px;
+
+  border-left: 5px solid var(--team-primary);
+}
+
+.coach-photo {
+  width: 100px;
+  height: 100px;
+
+  flex-shrink: 0;
+
+  background: #555;
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-size: 0.7rem;
+}
+
+.coach-card span {
+  color: var(--team-primary);
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 800;
+
+  font-size: 0.8rem;
+
+  letter-spacing: 1px;
+}
+
+.coach-card h3 {
+  margin: 3px 0;
+
+  font-size: 1.5rem;
+}
+
+.coach-card p {
+  margin: 0;
+
+  color: var(--team-gray);
+
+  font-size: 0.8rem;
+}
+
+
+/* =====================================================
+   HISTORY
+===================================================== */
+
+.history-section {
+  background: var(--black);
+
+  color: white;
+
+  padding: 90px 0;
+}
+
+.history-item {
+  display: grid;
+
+  grid-template-columns: 180px 1fr;
+
+  gap: 40px;
+
+  padding: 35px 0;
+
+  border-bottom: 1px solid #333;
+}
+
+.history-year {
+  color: var(--team-primary);
+
+  font-family: "Barlow Condensed", sans-serif;
+
   font-size: 4rem;
 
-  margin-bottom: 1rem;
+  font-weight: 800;
+
+  line-height: 0.8;
 }
 
+.history-item h3 {
+  font-size: 2rem;
 
-/*CONTACT*/
-
-.contact-buttons .btn {
-  margin-bottom: 0.5rem;
-}
-
-
-/*FOOTER*/
-
-footer {
   margin-top: 0;
 }
 
-.footer-link {
+.history-item p {
+  color: #aaa;
+}
+
+
+/* =====================================================
+   MEDIA
+===================================================== */
+
+.media-section {
+  background: white;
+}
+
+.social-card {
+  min-height: 240px;
+
+  display: flex;
+
+  align-items: end;
+
+  justify-content: space-between;
+
+  padding: 35px;
+
   color: white;
 
-  margin-left: 1rem;
-
-  transition: color 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
-.footer-link:hover {
-  color: #ffc107;
+.social-card:hover {
+  transform: translateY(-5px);
+
+  color: white;
+}
+
+.instagram-card {
+  background:
+    linear-gradient(
+      135deg,
+      #833ab4,
+      #fd1d1d,
+      #fcb045
+    );
+}
+
+.youtube-card {
+  background: #c4302b;
+}
+
+.social-card span {
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 700;
+
+  letter-spacing: 2px;
+}
+
+.social-card h3 {
+  font-size: 3rem;
+
+  margin: 5px 0;
+}
+
+.social-card p {
+  margin: 0;
+
+  opacity: 0.9;
+}
+
+.social-card strong {
+  font-size: 3rem;
 }
 
 
-/*FORM*/
+/* =====================================================
+   CONTACT
+===================================================== */
 
-.form-control,
-.form-select {
-  padding: 0.75rem;
+.contact-section {
+  background: var(--team-primary);
 
-  border-radius: 8px;
+  color: white;
+
+  padding: 100px 0;
 }
 
-.form-control:focus,
-.form-select:focus {
-  border-color: #0d6efd;
+.contact-section h2 {
+  font-size: 5rem;
+}
 
-  box-shadow:
-    0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+.contact-section p {
+  color: #eee;
 }
 
 
-/*MOBILE*/
+/* =====================================================
+   FOOTER
+===================================================== */
+
+footer {
+  background: var(--black);
+
+  color: white;
+
+  padding: 60px 0 25px;
+}
+
+.footer-brand {
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-size: 2.5rem;
+
+  font-weight: 800;
+}
+
+.footer-small {
+  color: #888;
+
+  font-size: 0.85rem;
+}
+
+.footer-nav {
+  display: flex;
+
+  justify-content: end;
+
+  align-items: start;
+
+  flex-wrap: wrap;
+
+  gap: 20px;
+}
+
+.footer-nav a {
+  color: #aaa;
+
+  font-family: "Barlow Condensed", sans-serif;
+
+  font-weight: 700;
+
+  font-size: 0.9rem;
+}
+
+.footer-nav a:hover {
+  color: white;
+}
+
+footer hr {
+  border-color: #333;
+
+  margin: 40px 0 20px;
+}
+
+.footer-bottom {
+  display: flex;
+
+  justify-content: space-between;
+
+  color: #666;
+
+  font-size: 0.75rem;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 991px) {
+
+  .nav-link {
+    padding: 12px 10px !important;
+  }
+
+  .join-nav {
+    margin-top: 10px;
+
+    display: inline-block;
+  }
+
+  .hero {
+    min-height: 600px;
+  }
+
+  .match-card {
+    grid-template-columns: 1fr;
+
+    padding: 20px;
+  }
+
+  .match-vs {
+    border: none;
+
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+
+    padding: 15px;
+
+    height: auto;
+  }
+
+  .schedule-row {
+    grid-template-columns: 90px 1fr;
+
+    gap: 10px;
+  }
+
+  .schedule-location,
+  .schedule-result {
+    grid-column: 2;
+
+    text-align: left;
+  }
+
+}
+
 
 @media (max-width: 768px) {
 
-  .hero-section {
-    min-height: 550px;
+  .top-bar {
+    display: none;
   }
 
-  .hero-section h1 {
-    font-size: 2.8rem;
+  .hero {
+    min-height: 600px;
   }
 
-  .hero-section .lead {
-    font-size: 1.1rem;
+  .hero h1 {
+    font-size: 5rem;
   }
 
-  .section-heading h2 {
-    font-size: 2rem;
+  .hero-scroll {
+    display: none;
   }
 
-  .next-event-card {
-    padding: 2rem 1.25rem;
+  .section {
+    padding: 65px 0;
   }
 
-  .timeline::before {
-    left: 20px;
+  .section-header {
+    align-items: start;
+
+    flex-direction: column;
+
+    gap: 15px;
   }
 
-  .timeline-item {
-    display: block;
-
-    padding-left: 55px;
-
-    margin-bottom: 2rem;
+  .section-header h2 {
+    font-size: 3.2rem;
   }
 
-  .timeline-year {
-    text-align: left;
-
-    margin-bottom: 0.75rem;
+  .about-section h2,
+  .join-section h2,
+  .contact-section h2 {
+    font-size: 4rem;
   }
 
-  .timeline-content {
-    padding: 1.25rem;
+  .about-image {
+    min-height: 300px;
   }
 
-  .footer-link {
-    margin-left: 0;
-    margin-right: 1rem;
+  .stat {
+    border-right: none;
+
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+
+    padding: 20px;
+  }
+
+  .stat strong {
+    font-size: 2.5rem;
+  }
+
+  .history-item {
+    grid-template-columns: 1fr;
+
+    gap: 15px;
+  }
+
+  .history-year {
+    font-size: 3rem;
+  }
+
+  .footer-nav {
+    justify-content: start;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+
+    gap: 8px;
   }
 
 }
 
 
-/*SMALL PHONES*/
-
 @media (max-width: 576px) {
 
-  .hero-section {
-    min-height: 500px;
+  .brand-text span {
+    font-size: 1.2rem;
   }
 
-  .hero-section h1 {
-    font-size: 2.3rem;
+  .brand-text small {
+    font-size: 0.45rem;
+  }
+
+  .logo-placeholder {
+    width: 45px;
+    height: 45px;
+  }
+
+  .hero h1 {
+    font-size: 4rem;
+  }
+
+  .hero p {
+    font-size: 1rem;
   }
 
   .hero-buttons .btn {
     width: 100%;
+
+    margin-right: 0;
   }
 
-  .info-card,
-  .media-card {
-    padding: 1.5rem;
+  .match-team h3 {
+    font-size: 1.6rem;
   }
 
+  .small-news {
+    grid-template-columns: 100px 1fr;
+  }
+
+  .small-news-image {
+    min-height: 90px;
+  }
+
+  .small-news h4 {
+    font-size: 1.1rem;
+  }
+
+  .join-card {
+    padding: 25px 20px;
+  }
+
+  .player-photo {
+    height: 210px;
+  }
+
+}
+/* =====================================================
+   EMPTY / COMING-SOON CONTENT
+===================================================== */
+.empty-state {
+  background: #fff;
+  border-left: 5px solid var(--team-primary);
+  padding: 24px;
+  color: var(--team-gray);
 }

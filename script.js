@@ -1,451 +1,160 @@
-/*CURRENT YEAR*/
+/*
+  MSU Rugby Club website
+  Add confirmed fixtures and practices to the schedule array below.
 
-const currentYear = document.getElementById("currentYear");
-
-if (currentYear) {
-  currentYear.textContent = new Date().getFullYear();
-}
-
-
-/*SCHEDULE DATA ---
-This lines of code is what allows an user to change the schedule
+  Front-end only: the join form opens the visitor's email app.
+  It does not send or store submissions on a server.
 */
 
 const schedule = [
-
-  {
-    type: "practice",
-    title: "Team Practice",
-    date: "2026-10-14",
-    time: "6:00 PM - 8:00 PM",
-    location: "Main Athletic Field",
-    status: "scheduled",
-    result: ""
-  },
-
-  {
-    type: "game",
-    title: "Home Game vs. Rivals",
-    date: "2026-10-17",
-    time: "1:00 PM",
-    location: "Main Athletic Field",
-    status: "scheduled",
-    result: ""
-  },
-
-  {
-    type: "practice",
-    title: "Team Practice",
-    date: "2026-10-20",
-    time: "6:00 PM - 8:00 PM",
-    location: "Main Athletic Field",
-    status: "scheduled",
-    result: ""
-  },
-
-  {
-    type: "game",
-    title: "Away Game",
-    date: "2026-10-24",
-    time: "3:00 PM",
-    location: "Riverside Sports Complex",
-    status: "scheduled",
-    result: ""
-  },
-
-  {
-    type: "practice",
-    title: "Team Practice",
-    date: "2026-10-27",
-    time: "6:00 PM - 8:00 PM",
-    location: "Main Athletic Field",
-    status: "scheduled",
-    result: ""
-  }
-
+  // Add confirmed events using this format:
+  // {
+  //   type: "game", // "game" or "practice"
+  //   date: "2026-09-12",
+  //   time: "1:00 PM",
+  //   opponent: "Opponent Name",
+  //   location: "Confirmed field / venue",
+  //   status: "upcoming", // "upcoming" or "cancelled"
+  //   result: ""
+  // }
 ];
 
-
-/*DATE FORMATTER */
-
 function formatDate(dateString) {
-
-  const date = new Date(dateString + "T12:00:00");
-
+  const date = new Date(`${dateString}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return "DATE TBA";
   return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric"
+    month: "short", day: "numeric", year: "numeric"
   });
 }
 
-
-/*FIND NEXT EVENT*/
-
-function getNextEvent() {
-
+function getUpcomingEvents() {
   const today = new Date();
-
   today.setHours(0, 0, 0, 0);
-
-  const upcomingEvents = schedule
+  return schedule
+    .filter(event => event.status !== "cancelled")
     .filter(event => {
-
-      const eventDate = new Date(
-        event.date + "T12:00:00"
-      );
-
-      return (
-        eventDate >= today &&
-        event.status !== "cancelled"
-      );
-
+      const eventDate = new Date(`${event.date}T12:00:00`);
+      return !Number.isNaN(eventDate.getTime()) && eventDate >= today;
     })
-    .sort((a, b) => {
-
-      return new Date(a.date) - new Date(b.date);
-
-    });
-
-  return upcomingEvents.length
-    ? upcomingEvents[0]
-    : null;
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 }
 
+function renderNextMatch() {
+  const container = document.getElementById("nextMatch");
+  if (!container) return;
+  const nextEvent = getUpcomingEvents()[0];
 
-/*DISPLAY NEXT EVENT*/
-
-function renderNextEvent() {
-
-  const container =
-    document.getElementById("nextEvent");
-
-  if (!container) {
-    return;
-  }
-
-  const event = getNextEvent();
-
-  if (!event) {
-
+  if (!nextEvent) {
     container.innerHTML = `
-      <h3>No Upcoming Events</h3>
-      <p class="mb-0">
-        Check back soon for the next team event.
-      </p>
-    `;
-
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <h3>UPCOMING SCHEDULE TO BE ANNOUNCED</h3>
+        <p>Contact MSU Rugby Club for current practice and match information.</p>
+        <a href="mailto:montclairmcrugby@gmail.com">EMAIL THE CLUB →</a>
+      </div>`;
     return;
   }
 
-
-  const eventLabel =
-    event.type === "game"
-      ? "🏆 GAME"
-      : "🏃 PRACTICE";
-
-
+  const isGame = nextEvent.type === "game";
   container.innerHTML = `
-
-    <div class="mb-2">
-      ${eventLabel}
+    <div class="match-team">
+      <span>HOME CLUB</span><h3>MSU RUGBY</h3><span>MONTCLAIR STATE</span>
     </div>
-
-    <h3>
-      ${event.title}
-    </h3>
-
-    <div class="next-event-date">
-      ${formatDate(event.date)}
+    <div class="match-vs">
+      <strong>${isGame ? "VS" : "TRAINING"}</strong>
+      <span>${formatDate(nextEvent.date)}</span>
+      <span>${nextEvent.time || "TIME TBA"}</span>
     </div>
-
-    <p class="mb-1">
-      <strong>${event.time}</strong>
-    </p>
-
-    <p class="next-event-location mb-0">
-      ${event.location}
-    </p>
-
-  `;
+    <div class="match-team">
+      <span>${isGame ? "OPPONENT" : "SESSION"}</span>
+      <h3>${nextEvent.opponent || (isGame ? "OPPONENT TBA" : "TEAM PRACTICE")}</h3>
+      <span>${nextEvent.location || "LOCATION TBA"}</span>
+    </div>`;
 }
-
-
-/*DISPLAY SCHEDULE */
 
 function renderSchedule(filter = "all") {
+  const container = document.getElementById("scheduleList");
+  if (!container) return;
 
-  const container =
-    document.getElementById("scheduleList");
-
-  if (!container) {
-    return;
-  }
-
-
-  let events = [...schedule];
-
-
-  if (filter !== "all") {
-
-    events = events.filter(
-      event => event.type === filter
-    );
-
-  }
-
-
-  events.sort((a, b) => {
-
-    return new Date(a.date) - new Date(b.date);
-
-  });
-
+  const events = schedule
+    .filter(event => filter === "all" || event.type === filter)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   if (events.length === 0) {
-
+    const label = filter === "all" ? "EVENTS" : `${filter.toUpperCase()}S`;
     container.innerHTML = `
-
-      <div class="col-12 text-center">
-
-        <div class="alert alert-info">
-          No events found.
-        </div>
-
-      </div>
-
-    `;
-
+      <div class="empty-state">
+        <h3>NO ${label} POSTED YET</h3>
+        <p>Confirmed matches and practices will be added here. Contact the club for the latest information.</p>
+        <a href="mailto:montclairmcrugby@gmail.com">montclairmcrugby@gmail.com</a>
+      </div>`;
     return;
   }
 
-
   container.innerHTML = events.map(event => {
-
-    const isCancelled =
-      event.status === "cancelled";
-
-
-    const typeLabel =
-      event.type === "game"
-        ? "Game"
-        : "Practice";
-
-
-    const typeBadge =
-      event.type === "game"
-        ? "bg-primary"
-        : "bg-success";
-
-
+    const cancelled = event.status === "cancelled";
+    const label = event.type === "game" ? "MATCH" : "PRACTICE";
+    const detail = cancelled ? "CANCELLED" : (event.result || event.time || "TIME TBA");
     return `
-
-      <div class="col-md-6 col-lg-4">
-
-        <div class="schedule-card ${
-          isCancelled ? "cancelled" : ""
-        }">
-
-          <div class="schedule-type">
-
-            <span class="badge ${typeBadge}">
-              ${typeLabel}
-            </span>
-
-          </div>
-
-
-          <h4>
-            ${event.title}
-          </h4>
-
-
-          <div class="schedule-date mb-2">
-            ${formatDate(event.date)}
-          </div>
-
-
-          <p class="mb-1">
-            <strong>Time:</strong>
-            ${event.time}
-          </p>
-
-
-          <p class="schedule-location mb-3">
-            <strong>Location:</strong>
-            ${event.location}
-          </p>
-
-
-          ${
-            isCancelled
-
-              ? `
-
-                <div class="alert alert-danger mb-0">
-
-                  <strong>
-                    CANCELLED
-                  </strong>
-
-                  <br>
-
-                  This event has been cancelled.
-
-                </div>
-
-              `
-
-              : event.result
-
-                ? `
-
-                  <p class="result mb-0">
-                    Result: ${event.result}
-                  </p>
-
-                `
-
-                : ""
-
-          }
-
+      <div class="schedule-row">
+        <div class="schedule-date">${formatDate(event.date)}<span>${label}</span></div>
+        <div class="schedule-opponent">
+          <h3>${event.opponent || (event.type === "game" ? "Opponent TBA" : "Team Practice")}</h3>
+          <span>${event.location || "Location TBA"}</span>
         </div>
-
-      </div>
-
-    `;
-
+        <div class="schedule-location">${event.time || ""}</div>
+        <div class="schedule-result ${cancelled ? "schedule-cancelled" : ""}">${detail}</div>
+      </div>`;
   }).join("");
-
 }
 
-
-/*SCHEDULE FILTERS*/
-
-const filterButtons =
-  document.querySelectorAll(".schedule-filter");
-
-
-filterButtons.forEach(button => {
-
-  button.addEventListener("click", () => {
-
-    filterButtons.forEach(btn => {
-
-      btn.classList.remove("active");
-
+function setupScheduleFilters() {
+  const buttons = document.querySelectorAll(".schedule-filter");
+  buttons.forEach(button => {
+    button.addEventListener("click", () => {
+      buttons.forEach(item => item.classList.remove("active"));
+      button.classList.add("active");
+      renderSchedule(button.dataset.filter || "all");
     });
-
-
-    button.classList.add("active");
-
-
-    const filter =
-      button.dataset.filter;
-
-
-    renderSchedule(filter);
-
   });
-
-});
-
-
-/*JOIN FORM*/
-
-const joinForm =
-  document.getElementById("joinForm");
-
-
-if (joinForm) {
-
-  joinForm.addEventListener("submit", async function(event) {
-
-    event.preventDefault();
-
-
-    const submission = {
-      FullName: document.getElementById("playerName").value,
-      Email: document.getElementById("playerEmail").value,
-      Position: document.getElementById("position").value,
-      ExperienceLevel: document.getElementById("experience").value,
-      Comments: document.getElementById("message").value
-    };
-
-
-    const confirmation =
-      document.getElementById("joinConfirmation");
-
-    const errorBox =
-      document.getElementById("joinError");
-
-    const submitButton =
-      joinForm.querySelector("button[type='submit']");
-
-
-    confirmation.classList.add("d-none");
-    errorBox.classList.add("d-none");
-    submitButton.disabled = true;
-
-    //adding csrf
-    try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-      const response = await fetch("/api/recruitment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-        body: JSON.stringify(submission)
-      });
-
-
-      if (!response.ok) {
-
-        const data = await response.json().catch(() => ({}));
-
-        throw new Error(
-          data.error || "Something went wrong. Please try again."
-        );
-
-      }
-
-
-      confirmation.classList.remove("d-none");
-
-      joinForm.reset();
-
-      confirmation.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-
-    } catch (error) {
-
-      errorBox.textContent =
-        error instanceof TypeError
-          ? "Could not reach the server. Please try again later."
-          : error.message;
-
-      errorBox.classList.remove("d-none");
-
-    } finally {
-
-      submitButton.disabled = false;
-
-    }
-
-  });
-
 }
 
+function setupJoinForm() {
+  const form = document.getElementById("joinForm");
+  const confirmation = document.getElementById("joinConfirmation");
+  if (!form) return;
 
-/*INITIALIZE WEBSITE*/
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    const name = document.getElementById("playerName")?.value.trim() || "";
+    const email = document.getElementById("playerEmail")?.value.trim() || "";
+    const position = document.getElementById("position")?.value || "Not specified";
+    const experience = document.getElementById("experience")?.value || "Not specified";
+    const message = document.getElementById("message")?.value.trim() || "";
+
+    const subject = encodeURIComponent("MSU Rugby Club - New Player Interest");
+    const body = encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\nPosition interest: ${position}\nExperience: ${experience}\n\nMessage:\n${message}`
+    );
+
+    if (confirmation) {
+      confirmation.classList.remove("d-none");
+      confirmation.textContent =
+        "Your email app should open with your message. Press Send in your email app to complete your inquiry.";
+    }
+    window.location.href =
+      `mailto:montclairmcrugby@gmail.com?subject=${subject}&body=${body}`;
+  });
+}
+
+function setCurrentYear() {
+  const year = document.getElementById("currentYear");
+  if (year) year.textContent = new Date().getFullYear();
+}
 
 document.addEventListener("DOMContentLoaded", () => {
-
-  renderNextEvent();
-
-  renderSchedule("all");
-
+  renderNextMatch();
+  renderSchedule();
+  setupScheduleFilters();
+  setupJoinForm();
+  setCurrentYear();
 });
