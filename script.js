@@ -172,17 +172,21 @@ function renderStaff(staff) {
   if (!container) return;
 
   const roles = [
-    { key: "PresidentName", label: "CLUB PRESIDENT" },
-    { key: "CoachName", label: "HEAD COACH" },
-    { key: "CaptainName", label: "TEAM CAPTAIN" }
+    { key: "PresidentName", imageKey: "PresidentImage", label: "CLUB PRESIDENT" },
+    { key: "CoachName", imageKey: "CoachImage", label: "HEAD COACH" },
+    { key: "CaptainName", imageKey: "CaptainImage", label: "TEAM CAPTAIN" }
   ];
 
   container.innerHTML = roles.map(role => {
     const name = (staff?.[role.key] || "").trim();
+    const imageUrl = (staff?.[role.imageKey] || "").trim();
+    const photo = imageUrl
+      ? `<div class="coach-photo"><img src="${imageUrl}" alt="${name || role.label}" width="200" height="200"></div>`
+      : `<div class="coach-photo">MSU</div>`;
     return `
       <div class="col-md-4">
         <div class="coach-card">
-          <div class="coach-photo">MSU</div>
+          ${photo}
           <div>
             <span>${role.label}</span>
             <h3>${name || "TO BE ANNOUNCED"}</h3>
@@ -211,7 +215,7 @@ function renderSeasonRecordBand(container, kicker, title, wins, losses) {
       <h3>${title}</h3>
     </div>
     <div class="season-record-score">
-      <strong>${wins}-${losses}</strong>
+      <strong>${wins} - ${losses}</strong>
       <span>WINS · LOSSES</span>
     </div>`;
 }

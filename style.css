@@ -1034,8 +1034,8 @@ a {
 }
 
 .coach-photo {
-  width: 100px;
-  height: 100px;
+  width: 200px;
+  height: 200px;
 
   flex-shrink: 0;
 
@@ -1049,9 +1049,18 @@ a {
 
   justify-content: center;
 
+  overflow: hidden;
+
   font-family: "Barlow Condensed", sans-serif;
 
   font-size: 0.7rem;
+}
+
+.coach-photo img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  display: block;
 }
 
 .coach-card span {
@@ -1096,9 +1105,11 @@ a {
 .history-item {
   display: grid;
 
-  grid-template-columns: 180px 1fr;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
 
-  gap: 40px;
+  column-gap: 64px;
+
+  align-items: start;
 
   padding: 35px 0;
 
@@ -1110,11 +1121,21 @@ a {
 
   font-family: "Barlow Condensed", sans-serif;
 
-  font-size: 4rem;
+  font-size: clamp(1.8rem, 3.2vw, 2.8rem);
 
   font-weight: 800;
 
-  line-height: 0.8;
+  line-height: 1;
+
+  word-break: break-word;
+
+  overflow-wrap: anywhere;
+}
+
+.history-item > div:last-child {
+  min-width: 0;
+
+  padding-left: 8px;
 }
 
 .history-item h3 {
@@ -1639,4 +1660,44 @@ footer hr {
   .season-record-score {
     text-align: left;
   }
+}
+
+/* =====================================================
+   ADMIN SUBMISSIONS + STAFF PHOTO
+===================================================== */
+
+#admin-submissions .table-responsive {
+  overflow-x: hidden;
+}
+
+#admin-submissions table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+#admin-submissions .comments-cell {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.staff-photo-preview {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #555;
+  color: #fff;
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  overflow: hidden;
+}
+
+.staff-photo-preview img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  display: block;
 }

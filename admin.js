@@ -492,12 +492,25 @@ document.getElementById("seasonRecordForm").addEventListener("submit", async eve
 
 /*STAFF*/
 
+function setStaffPhotoPreview(previewId, imageUrl) {
+  const preview = document.getElementById(previewId);
+  if (!preview) return;
+  if (imageUrl) {
+    preview.innerHTML = `<img src="${imageUrl}" alt="Staff photo" width="200" height="200">`;
+  } else {
+    preview.textContent = "MSU";
+  }
+}
+
 async function loadStaff() {
   try {
     const data = await api("/api/admin/staff");
     document.getElementById("presidentName").value = data.PresidentName || "";
     document.getElementById("coachName").value = data.CoachName || "";
     document.getElementById("captainName").value = data.CaptainName || "";
+    setStaffPhotoPreview("presidentImagePreview", data.PresidentImage || "");
+    setStaffPhotoPreview("coachImagePreview", data.CoachImage || "");
+    setStaffPhotoPreview("captainImagePreview", data.CaptainImage || "");
   } catch (error) {
     if (error.status === 401) {
       showLogin();
@@ -537,6 +550,51 @@ async function saveStaffRole(roleLabel, errorId, successId) {
 }
 
 
+async function uploadStaffPhoto(role, fileInputId, previewId, errorId, successId) {
+  const errorBox = document.getElementById(errorId);
+  const successBox = document.getElementById(successId);
+  const fileInput = document.getElementById(fileInputId);
+  errorBox.classList.add("d-none");
+  successBox.classList.add("d-none");
+
+  if (!fileInput?.files?.length) {
+    showError(errorBox, "Choose a photo to upload first.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("image", fileInput.files[0]);
+
+  try {
+    const headers = {};
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+    const response = await fetch(`/api/admin/staff/${role}/image`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers,
+      body: formData
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(data.error || "Upload failed");
+      error.status = response.status;
+      throw error;
+    }
+    setStaffPhotoPreview(previewId, data.imageUrl || "");
+    fileInput.value = "";
+    showSuccess(successBox, "Photo uploaded.");
+  } catch (error) {
+    if (error.status === 401) {
+      showLogin();
+      return;
+    }
+    showError(errorBox, error.message);
+  }
+}
+
+
 document.getElementById("presidentForm").addEventListener("submit", async event => {
   event.preventDefault();
   await saveStaffRole("President", "presidentError", "presidentSuccess");
@@ -550,6 +608,18 @@ document.getElementById("coachForm").addEventListener("submit", async event => {
 document.getElementById("captainForm").addEventListener("submit", async event => {
   event.preventDefault();
   await saveStaffRole("Captain", "captainError", "captainSuccess");
+});
+
+document.getElementById("presidentImageUpload").addEventListener("click", () => {
+  uploadStaffPhoto("president", "presidentImage", "presidentImagePreview", "presidentError", "presidentSuccess");
+});
+
+document.getElementById("coachImageUpload").addEventListener("click", () => {
+  uploadStaffPhoto("coach", "coachImage", "coachImagePreview", "coachError", "coachSuccess");
+});
+
+document.getElementById("captainImageUpload").addEventListener("click", () => {
+  uploadStaffPhoto("captain", "captainImage", "captainImagePreview", "captainError", "captainSuccess");
 });
 
 
@@ -587,9 +657,8 @@ function renderSubmissions(data) {
     row.appendChild(cell(submission.Position));
     row.appendChild(cell(submission.ExperienceLevel));
 
-    const commentsCell = cell(submission.Comments);
-    commentsCell.style.whiteSpace = "pre-wrap";
-    commentsCell.style.maxWidth = "320px";
+    const commentsCell = cell(submission.Comments || "");
+    commentsCell.className = "comments-cell";
     row.appendChild(commentsCell);
 
     const actionsCell = document.createElement("td");

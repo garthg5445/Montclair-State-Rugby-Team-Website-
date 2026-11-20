@@ -12,10 +12,11 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect, CSRFError #security
 from flask_talisman import Talisman #security import
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 from models import (
 	db, UserDataTable, Major, Player, SportSeason, SportSeasonPlayer,
@@ -50,6 +51,14 @@ HOME_AWAY_CHOICES = {"home", "away"}
 EVENT_STATUS_CHOICES = {"scheduled", "cancelled", "postponed"}
 STAFF_CONFIG_ID = "main"
 SEASON_LABEL_PATTERN = re.compile(r"^\d{4}-\d{4}$")
+STAFF_UPLOAD_DIR = os.path.join(SITE_DIR, "uploads", "staff")
+STAFF_IMAGE_SIZE = (200, 200)
+STAFF_IMAGE_FIELDS = {
+	"president": "PresidentImage",
+	"coach": "CoachImage",
+	"captain": "CaptainImage"
+}
+ALLOWED_STAFF_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 DEFAULT_CORS_ORIGINS = (
 	"http://localhost:3000,"
@@ -365,6 +374,10 @@ def register_site_routes(app):
 	def admin_page():
 		return render_template("admin.html")
 
+	@app.route("/uploads/staff/<path:filename>", methods=["GET"])
+	def staff_upload_file(filename):
+		return send_from_directory(STAFF_UPLOAD_DIR, filename)
+
 	@app.route("/<string:filename>", methods=["GET"])
 	def site_file(filename):
 		if filename not in SITE_FILES:
@@ -619,6 +632,52 @@ def register_admin_routes(app, limiter):
 		db.session.commit()
 		return jsonify(staff_to_dict(staff))
 
+	@app.route("/api/admin/staff/<string:role>/image", methods=["POST"])
+	@limiter.limit("20 per minute", override_defaults=False)
+	def admin_upload_staff_image(role):
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+
+		role_key = (role or "").strip().lower()
+		image_field = STAFF_IMAGE_FIELDS.get(role_key)
+		if image_field is None:
+			return jsonify({"error": "Staff role was not found"}), 404
+
+		upload = request.files.get("image")
+		if upload is None or not upload.filename:
+			return jsonify({"error": "An image file is required"}), 400
+
+		content_type = (upload.mimetype or "").lower()
+		if content_type not in ALLOWED_STAFF_IMAGE_TYPES:
+			return jsonify({"error": "Image must be a JPG, PNG, or WEBP file"}), 400
+
+		try:
+			from PIL import Image
+			image = Image.open(upload.stream).convert("RGB")
+			image = crop_to_square(image).resize(STAFF_IMAGE_SIZE, Image.Resampling.LANCZOS)
+		except Exception:
+			return jsonify({"error": "Could not read that image file"}), 400
+
+		os.makedirs(STAFF_UPLOAD_DIR, exist_ok=True)
+		filename = f"{role_key}-{uuid.uuid4().hex}.jpg"
+		filepath = os.path.join(STAFF_UPLOAD_DIR, filename)
+		image.save(filepath, format="JPEG", quality=90)
+
+		staff = get_or_create_staff()
+		old_name = getattr(staff, image_field, None)
+		setattr(staff, image_field, filename)
+		db.session.commit()
+
+		if old_name and old_name != filename:
+			old_path = os.path.join(STAFF_UPLOAD_DIR, secure_filename(old_name))
+			if os.path.isfile(old_path):
+				try:
+					os.remove(old_path)
+				except OSError:
+					pass
+
+		return jsonify({"imageUrl": f"/uploads/staff/{filename}", "filename": filename})
+
 	@app.route("/api/admin/season-records", methods=["GET"])
 	@limiter.limit("60 per minute", override_defaults=False)
 	def admin_list_season_records():
@@ -698,11 +757,19 @@ def event_to_dict(event):
 		"Location": event.Location
 	}
 
+def staff_image_url(filename):
+	if not filename:
+		return ""
+	return f"/uploads/staff/{secure_filename(filename)}"
+
 def staff_to_dict(staff):
 	return {
 		"PresidentName": staff.PresidentName or "",
 		"CoachName": staff.CoachName or "",
-		"CaptainName": staff.CaptainName or ""
+		"CaptainName": staff.CaptainName or "",
+		"PresidentImage": staff_image_url(getattr(staff, "PresidentImage", None)),
+		"CoachImage": staff_image_url(getattr(staff, "CoachImage", None)),
+		"CaptainImage": staff_image_url(getattr(staff, "CaptainImage", None))
 	}
 
 def get_or_create_staff():
@@ -712,6 +779,24 @@ def get_or_create_staff():
 		db.session.add(staff)
 		db.session.commit()
 	return staff
+
+def crop_to_square(image):
+	width, height = image.size
+	side = min(width, height)
+	left = (width - side) // 2
+	top = (height - side) // 2
+	return image.crop((left, top, left + side, top + side))
+
+def ensure_staff_image_columns():
+	os.makedirs(STAFF_UPLOAD_DIR, exist_ok=True)
+	with db.engine.begin() as connection:
+		existing = {
+			row[1]
+			for row in connection.execute(text("PRAGMA table_info(team_staff)")).fetchall()
+		}
+		for column_name in ("PresidentImage", "CoachImage", "CaptainImage"):
+			if column_name not in existing:
+				connection.execute(text(f"ALTER TABLE team_staff ADD COLUMN {column_name} VARCHAR(255)"))
 
 def validate_event_data(data):
 	event_type, error = validate_choice(data.get("EventType"), "EventType", EVENT_TYPE_CHOICES)
@@ -1095,6 +1180,7 @@ def register_cli_commands(app):
 	@app.cli.command("init-db")
 	def init_db():
 		db.create_all()
+		ensure_staff_image_columns()
 		print("Database initialized.")
 
 	@app.cli.command("create-admin")
@@ -1163,6 +1249,7 @@ if __name__ == "__main__":
 	if create_tables:
 		with app.app_context():
 			db.create_all()
+			ensure_staff_image_columns()
 
 	app.run(
 		host=os.getenv("HOST", "127.0.0.1"),

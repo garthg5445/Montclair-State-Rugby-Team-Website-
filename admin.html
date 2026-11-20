@@ -300,7 +300,16 @@
                   <label for="presidentName" class="form-label">Name</label>
                   <input type="text" class="form-control" id="presidentName" maxlength="100">
                 </div>
-                <button type="submit" class="btn btn-team">Save President</button>
+                <div class="mb-3">
+                  <label for="presidentImage" class="form-label">Photo (200×200)</label>
+                  <div id="presidentImagePreview" class="staff-photo-preview">MSU</div>
+                  <input type="file" class="form-control mt-2" id="presidentImage" accept="image/png,image/jpeg,image/webp">
+                  <div class="form-text">Upload a square photo. It will be saved at 200×200.</div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-team">Save President</button>
+                  <button type="button" class="btn btn-outline-secondary" id="presidentImageUpload">Upload Photo</button>
+                </div>
               </form>
               <div id="presidentError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
               <div id="presidentSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>
@@ -317,7 +326,16 @@
                   <label for="coachName" class="form-label">Name</label>
                   <input type="text" class="form-control" id="coachName" maxlength="100">
                 </div>
-                <button type="submit" class="btn btn-team">Save Coach</button>
+                <div class="mb-3">
+                  <label for="coachImage" class="form-label">Photo (200×200)</label>
+                  <div id="coachImagePreview" class="staff-photo-preview">MSU</div>
+                  <input type="file" class="form-control mt-2" id="coachImage" accept="image/png,image/jpeg,image/webp">
+                  <div class="form-text">Upload a square photo. It will be saved at 200×200.</div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-team">Save Coach</button>
+                  <button type="button" class="btn btn-outline-secondary" id="coachImageUpload">Upload Photo</button>
+                </div>
               </form>
               <div id="coachError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
               <div id="coachSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>
@@ -334,7 +352,16 @@
                   <label for="captainName" class="form-label">Name</label>
                   <input type="text" class="form-control" id="captainName" maxlength="100">
                 </div>
-                <button type="submit" class="btn btn-team">Save Captain</button>
+                <div class="mb-3">
+                  <label for="captainImage" class="form-label">Photo (200×200)</label>
+                  <div id="captainImagePreview" class="staff-photo-preview">MSU</div>
+                  <input type="file" class="form-control mt-2" id="captainImage" accept="image/png,image/jpeg,image/webp">
+                  <div class="form-text">Upload a square photo. It will be saved at 200×200.</div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-team">Save Captain</button>
+                  <button type="button" class="btn btn-outline-secondary" id="captainImageUpload">Upload Photo</button>
+                </div>
               </form>
               <div id="captainError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
               <div id="captainSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>

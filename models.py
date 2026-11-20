@@ -136,10 +136,13 @@ class TeamStaff(db.Model):
     ConfigID = db.Column("ConfigID", db.Text, primary_key=True)
     PresidentName = db.Column(db.String(100))
     PresidentEmail = db.Column(db.String(254))
+    PresidentImage = db.Column(db.String(255))
     CoachName = db.Column(db.String(100))
     CoachEmail = db.Column(db.String(254))
+    CoachImage = db.Column(db.String(255))
     CaptainName = db.Column(db.String(100))
     CaptainEmail = db.Column(db.String(254))
+    CaptainImage = db.Column(db.String(255))
     UpdatedAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
 
 
