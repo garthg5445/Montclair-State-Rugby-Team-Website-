@@ -1,451 +1,364 @@
-/*CURRENT YEAR*/
+/*
+  MSU Rugby Club website
 
-const currentYear = document.getElementById("currentYear");
-
-if (currentYear) {
-  currentYear.textContent = new Date().getFullYear();
-}
-
-
-/*SCHEDULE DATA ---
-This lines of code is what allows an user to change the schedule
+  Schedule and staff load from the API.
+  The join form saves the submission for admins, then opens the visitor's email app.
 */
 
-const schedule = [
-
-  {
-    type: "practice",
-    title: "Team Practice",
-    date: "2026-10-14",
-    time: "6:00 PM - 8:00 PM",
-    location: "Main Athletic Field",
-    status: "scheduled",
-    result: ""
-  },
-
-  {
-    type: "game",
-    title: "Home Game vs. Rivals",
-    date: "2026-10-17",
-    time: "1:00 PM",
-    location: "Main Athletic Field",
-    status: "scheduled",
-    result: ""
-  },
-
-  {
-    type: "practice",
-    title: "Team Practice",
-    date: "2026-10-20",
-    time: "6:00 PM - 8:00 PM",
-    location: "Main Athletic Field",
-    status: "scheduled",
-    result: ""
-  },
-
-  {
-    type: "game",
-    title: "Away Game",
-    date: "2026-10-24",
-    time: "3:00 PM",
-    location: "Riverside Sports Complex",
-    status: "scheduled",
-    result: ""
-  },
-
-  {
-    type: "practice",
-    title: "Team Practice",
-    date: "2026-10-27",
-    time: "6:00 PM - 8:00 PM",
-    location: "Main Athletic Field",
-    status: "scheduled",
-    result: ""
-  }
-
-];
-
-
-/*DATE FORMATTER */
+let schedule = [];
+let currentScheduleFilter = "all";
 
 function formatDate(dateString) {
-
-  const date = new Date(dateString + "T12:00:00");
-
+  const date = new Date(`${dateString}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return "DATE TBA";
   return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric"
+    month: "short", day: "numeric", year: "numeric"
   });
 }
 
-
-/*FIND NEXT EVENT*/
-
-function getNextEvent() {
-
-  const today = new Date();
-
-  today.setHours(0, 0, 0, 0);
-
-  const upcomingEvents = schedule
-    .filter(event => {
-
-      const eventDate = new Date(
-        event.date + "T12:00:00"
-      );
-
-      return (
-        eventDate >= today &&
-        event.status !== "cancelled"
-      );
-
-    })
-    .sort((a, b) => {
-
-      return new Date(a.date) - new Date(b.date);
-
+function formatTime(timeString) {
+  if (!timeString) return "TIME TBA";
+  if (/^\d{2}:\d{2}/.test(timeString)) {
+    const [hours, minutes] = timeString.split(":");
+    const date = new Date();
+    date.setHours(Number(hours), Number(minutes), 0, 0);
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit"
     });
-
-  return upcomingEvents.length
-    ? upcomingEvents[0]
-    : null;
+  }
+  return timeString;
 }
 
+function mapApiEvent(event) {
+  return {
+    id: event.EventID,
+    type: event.EventType,
+    date: event.EventDate,
+    time: formatTime(event.EventTime),
+    opponent: event.Opponent,
+    homeAway: event.HomeAway,
+    location: event.Location,
+    status: event.Status,
+    result: ""
+  };
+}
 
-/*DISPLAY NEXT EVENT*/
+function getUpcomingEvents() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return schedule
+    .filter(event => event.status === "scheduled")
+    .filter(event => {
+      const eventDate = new Date(`${event.date}T12:00:00`);
+      return !Number.isNaN(eventDate.getTime()) && eventDate >= today;
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+}
 
-function renderNextEvent() {
+function renderNextMatch() {
+  const container = document.getElementById("nextMatch");
+  if (!container) return;
+  const nextEvent = getUpcomingEvents()[0];
 
-  const container =
-    document.getElementById("nextEvent");
-
-  if (!container) {
-    return;
-  }
-
-  const event = getNextEvent();
-
-  if (!event) {
-
+  if (!nextEvent) {
+    container.className = "";
     container.innerHTML = `
-      <h3>No Upcoming Events</h3>
-      <p class="mb-0">
-        Check back soon for the next team event.
-      </p>
-    `;
-
+      <div class="empty-state">
+        <h3>UPCOMING SCHEDULE TO BE ANNOUNCED</h3>
+        <p>Contact MSU Rugby Club for current practice and match information.</p>
+        <a href="mailto:montclairmcrugby@gmail.com">EMAIL THE CLUB →</a>
+      </div>`;
     return;
   }
 
-
-  const eventLabel =
-    event.type === "game"
-      ? "🏆 GAME"
-      : "🏃 PRACTICE";
-
-
+  const isGame = nextEvent.type === "game";
+  const homeAwayLabel = nextEvent.homeAway === "away" ? "AWAY" : "HOME";
+  container.className = "match-card";
   container.innerHTML = `
-
-    <div class="mb-2">
-      ${eventLabel}
+    <div class="match-team">
+      <span>${isGame ? homeAwayLabel + " CLUB" : "HOME CLUB"}</span>
+      <h3>MSU RUGBY</h3>
+      <span>MONTCLAIR STATE</span>
     </div>
-
-    <h3>
-      ${event.title}
-    </h3>
-
-    <div class="next-event-date">
-      ${formatDate(event.date)}
+    <div class="match-vs">
+      <strong>${isGame ? "VS" : "TRAINING"}</strong>
+      <span>${formatDate(nextEvent.date)}</span>
+      <span>${nextEvent.time || "TIME TBA"}</span>
     </div>
-
-    <p class="mb-1">
-      <strong>${event.time}</strong>
-    </p>
-
-    <p class="next-event-location mb-0">
-      ${event.location}
-    </p>
-
-  `;
+    <div class="match-team">
+      <span>${isGame ? "OPPONENT" : "SESSION"}</span>
+      <h3>${nextEvent.opponent || (isGame ? "OPPONENT TBA" : "TEAM PRACTICE")}</h3>
+      <span>${nextEvent.location || "LOCATION TBA"}</span>
+    </div>`;
 }
 
+function statusLabel(status) {
+  if (status === "cancelled") return "CANCELLED";
+  if (status === "postponed") return "POSTPONED";
+  return null;
+}
 
-/*DISPLAY SCHEDULE */
+function renderSchedule(filter = currentScheduleFilter) {
+  currentScheduleFilter = filter;
+  const container = document.getElementById("scheduleList");
+  if (!container) return;
 
-function renderSchedule(filter = "all") {
-
-  const container =
-    document.getElementById("scheduleList");
-
-  if (!container) {
-    return;
-  }
-
-
-  let events = [...schedule];
-
-
-  if (filter !== "all") {
-
-    events = events.filter(
-      event => event.type === filter
-    );
-
-  }
-
-
-  events.sort((a, b) => {
-
-    return new Date(a.date) - new Date(b.date);
-
-  });
-
+  const events = schedule
+    .filter(event => filter === "all" || event.type === filter)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   if (events.length === 0) {
-
+    const label = filter === "all" ? "EVENTS" : `${filter.toUpperCase()}S`;
     container.innerHTML = `
-
-      <div class="col-12 text-center">
-
-        <div class="alert alert-info">
-          No events found.
-        </div>
-
-      </div>
-
-    `;
-
+      <div class="empty-state">
+        <h3>NO ${label} POSTED YET</h3>
+        <p>Confirmed matches and practices will be added here. Contact the club for the latest information.</p>
+        <a href="mailto:montclairmcrugby@gmail.com">montclairmcrugby@gmail.com</a>
+      </div>`;
     return;
   }
 
-
   container.innerHTML = events.map(event => {
-
-    const isCancelled =
-      event.status === "cancelled";
-
-
-    const typeLabel =
+    const specialStatus = statusLabel(event.status);
+    const label = event.type === "game" ? "MATCH" : "PRACTICE";
+    const homeAway =
       event.type === "game"
-        ? "Game"
-        : "Practice";
-
-
-    const typeBadge =
-      event.type === "game"
-        ? "bg-primary"
-        : "bg-success";
-
-
+        ? (event.homeAway === "away" ? "Away" : "Home")
+        : "";
+    const title = event.type === "game"
+      ? `${homeAway}: vs ${event.opponent || "Opponent TBA"}`
+      : (event.opponent || "Team Practice");
+    const detail = specialStatus || event.time || "TIME TBA";
     return `
-
-      <div class="col-md-6 col-lg-4">
-
-        <div class="schedule-card ${
-          isCancelled ? "cancelled" : ""
-        }">
-
-          <div class="schedule-type">
-
-            <span class="badge ${typeBadge}">
-              ${typeLabel}
-            </span>
-
-          </div>
-
-
-          <h4>
-            ${event.title}
-          </h4>
-
-
-          <div class="schedule-date mb-2">
-            ${formatDate(event.date)}
-          </div>
-
-
-          <p class="mb-1">
-            <strong>Time:</strong>
-            ${event.time}
-          </p>
-
-
-          <p class="schedule-location mb-3">
-            <strong>Location:</strong>
-            ${event.location}
-          </p>
-
-
-          ${
-            isCancelled
-
-              ? `
-
-                <div class="alert alert-danger mb-0">
-
-                  <strong>
-                    CANCELLED
-                  </strong>
-
-                  <br>
-
-                  This event has been cancelled.
-
-                </div>
-
-              `
-
-              : event.result
-
-                ? `
-
-                  <p class="result mb-0">
-                    Result: ${event.result}
-                  </p>
-
-                `
-
-                : ""
-
-          }
-
+      <div class="schedule-row">
+        <div class="schedule-date">${formatDate(event.date)}<span>${label}</span></div>
+        <div class="schedule-opponent">
+          <h3>${title}</h3>
+          <span>${event.location || "Location TBA"}</span>
         </div>
-
-      </div>
-
-    `;
-
+        <div class="schedule-location">${event.time || ""}</div>
+        <div class="schedule-result ${specialStatus ? "schedule-cancelled" : ""}">${detail}</div>
+      </div>`;
   }).join("");
-
 }
 
-
-/*SCHEDULE FILTERS*/
-
-const filterButtons =
-  document.querySelectorAll(".schedule-filter");
-
-
-filterButtons.forEach(button => {
-
-  button.addEventListener("click", () => {
-
-    filterButtons.forEach(btn => {
-
-      btn.classList.remove("active");
-
+function setupScheduleFilters() {
+  const buttons = document.querySelectorAll(".schedule-filter");
+  buttons.forEach(button => {
+    button.addEventListener("click", () => {
+      buttons.forEach(item => item.classList.remove("active"));
+      button.classList.add("active");
+      renderSchedule(button.dataset.filter || "all");
     });
-
-
-    button.classList.add("active");
-
-
-    const filter =
-      button.dataset.filter;
-
-
-    renderSchedule(filter);
-
   });
+}
 
-});
+async function loadSchedule() {
+  try {
+    const response = await fetch("/api/events");
+    if (!response.ok) throw new Error("Failed to load schedule");
+    const data = await response.json();
+    schedule = (data.events || []).map(mapApiEvent);
+  } catch (error) {
+    schedule = [];
+  }
+  renderNextMatch();
+  renderSchedule();
+}
 
+function renderStaff(staff) {
+  const container = document.getElementById("staffList");
+  if (!container) return;
 
-/*JOIN FORM*/
+  const roles = [
+    { key: "PresidentName", imageKey: "PresidentImage", label: "CLUB PRESIDENT" },
+    { key: "CoachName", imageKey: "CoachImage", label: "HEAD COACH" },
+    { key: "CaptainName", imageKey: "CaptainImage", label: "TEAM CAPTAIN" }
+  ];
 
-const joinForm =
-  document.getElementById("joinForm");
+  container.innerHTML = roles.map(role => {
+    const name = (staff?.[role.key] || "").trim();
+    const imageUrl = (staff?.[role.imageKey] || "").trim();
+    const photo = imageUrl
+      ? `<div class="coach-photo"><img src="${imageUrl}" alt="${name || role.label}" width="200" height="200"></div>`
+      : `<div class="coach-photo">MSU</div>`;
+    return `
+      <div class="col-md-4">
+        <div class="coach-card">
+          ${photo}
+          <div>
+            <span>${role.label}</span>
+            <h3>${name || "TO BE ANNOUNCED"}</h3>
+            <p>${name ? "Managed from the club admin panel." : "Leadership details will appear here once added."}</p>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
 
+async function loadStaff() {
+  try {
+    const response = await fetch("/api/staff");
+    if (!response.ok) throw new Error("Failed to load staff");
+    renderStaff(await response.json());
+  } catch (error) {
+    renderStaff({});
+  }
+}
 
-if (joinForm) {
+function renderSeasonRecordBand(container, kicker, title, wins, losses) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="season-record-copy">
+      <span class="section-kicker">${kicker}</span>
+      <h3>${title}</h3>
+    </div>
+    <div class="season-record-score">
+      <strong>${wins} - ${losses}</strong>
+      <span>WINS · LOSSES</span>
+    </div>`;
+}
 
-  joinForm.addEventListener("submit", async function(event) {
+async function loadSeasonRecords() {
+  const currentBox = document.getElementById("currentSeasonRecord");
+  const historyBox = document.getElementById("allTimeRecord");
 
+  try {
+    const response = await fetch("/api/season-records");
+    if (!response.ok) throw new Error("Failed to load season records");
+    const data = await response.json();
+    const current = data.currentRecord || { SeasonLabel: data.currentSeason || "", Wins: 0, Losses: 0 };
+    const allTime = data.allTime || { Wins: 0, Losses: 0 };
+
+    renderSeasonRecordBand(
+      currentBox,
+      "CURRENT SEASON",
+      `${current.SeasonLabel || "SEASON"} RECORD`,
+      current.Wins || 0,
+      current.Losses || 0
+    );
+    renderSeasonRecordBand(
+      historyBox,
+      "ALL-TIME",
+      "CLUB RECORD",
+      allTime.Wins || 0,
+      allTime.Losses || 0
+    );
+  } catch (error) {
+    renderSeasonRecordBand(currentBox, "CURRENT SEASON", "SEASON RECORD", 0, 0);
+    renderSeasonRecordBand(historyBox, "ALL-TIME", "CLUB RECORD", 0, 0);
+  }
+}
+
+function setupMessageCounter() {
+  const message = document.getElementById("message");
+  const counter = document.getElementById("messageCount");
+  const warning = document.getElementById("messageLimitWarning");
+  if (!message || !counter) return;
+
+  const maxLength = 300;
+
+  const updateCounter = () => {
+    const length = message.value.length;
+    counter.textContent = `${length} / ${maxLength}`;
+
+    if (warning) {
+      if (length >= maxLength) {
+        warning.classList.remove("d-none");
+      } else {
+        warning.classList.add("d-none");
+      }
+    }
+  };
+
+  message.addEventListener("input", updateCounter);
+  updateCounter();
+}
+
+function setupJoinForm() {
+  const form = document.getElementById("joinForm");
+  const confirmation = document.getElementById("joinConfirmation");
+  const errorBox = document.getElementById("joinError");
+  if (!form) return;
+
+  form.addEventListener("submit", async event => {
     event.preventDefault();
 
+    const name = document.getElementById("playerName")?.value.trim() || "";
+    const email = document.getElementById("playerEmail")?.value.trim() || "";
+    const position = document.getElementById("position")?.value || "";
+    const experience = document.getElementById("experience")?.value || "";
+    const message = document.getElementById("message")?.value.trim() || "";
+    const submitButton = form.querySelector("button[type='submit']");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    const submission = {
-      FullName: document.getElementById("playerName").value,
-      Email: document.getElementById("playerEmail").value,
-      Position: document.getElementById("position").value,
-      ExperienceLevel: document.getElementById("experience").value,
-      Comments: document.getElementById("message").value
-    };
+    if (confirmation) confirmation.classList.add("d-none");
+    if (errorBox) errorBox.classList.add("d-none");
+    if (submitButton) submitButton.disabled = true;
 
-
-    const confirmation =
-      document.getElementById("joinConfirmation");
-
-    const errorBox =
-      document.getElementById("joinError");
-
-    const submitButton =
-      joinForm.querySelector("button[type='submit']");
-
-
-    confirmation.classList.add("d-none");
-    errorBox.classList.add("d-none");
-    submitButton.disabled = true;
-
-    //adding csrf
     try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      const headers = { "Content-Type": "application/json" };
+      if (csrfToken) {
+        headers["X-CSRF-Token"] = csrfToken;
+      }
 
       const response = await fetch("/api/recruitment", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-        body: JSON.stringify(submission)
+        credentials: "same-origin",
+        headers,
+        body: JSON.stringify({
+          FullName: name,
+          Email: email,
+          Position: position,
+          ExperienceLevel: experience,
+          Comments: message
+        })
       });
-
 
       if (!response.ok) {
-
         const data = await response.json().catch(() => ({}));
-
-        throw new Error(
-          data.error || "Something went wrong. Please try again."
-        );
-
+        throw new Error(data.error || "Something went wrong. Please try again.");
       }
 
+      if (confirmation) {
+        confirmation.classList.remove("d-none");
+        confirmation.textContent =
+          "Submitted! Your email app should open with your message. Press send in your email app to complete your inquiry.";
+      }
 
-      confirmation.classList.remove("d-none");
+      const subject = encodeURIComponent("MSU Rugby Club - New Player Interest");
+      const body = encodeURIComponent(
+        `Name: ${name}\nEmail: ${email}\nPosition interest: ${position}\nExperience: ${experience}\n\nMessage:\n${message}`
+      );
 
-      joinForm.reset();
-
-      confirmation.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-
+      window.location.href =
+        `mailto:montclairmcrugby@gmail.com?subject=${subject}&body=${body}`;
     } catch (error) {
-
-      errorBox.textContent =
-        error instanceof TypeError
-          ? "Could not reach the server. Please try again later."
-          : error.message;
-
-      errorBox.classList.remove("d-none");
-
+      if (errorBox) {
+        errorBox.textContent =
+          error instanceof TypeError
+            ? "Could not reach the server. Please try again later."
+            : error.message;
+        errorBox.classList.remove("d-none");
+      }
     } finally {
-
-      submitButton.disabled = false;
-
+      if (submitButton) submitButton.disabled = false;
     }
-
   });
-
 }
 
-
-/*INITIALIZE WEBSITE*/
+function setCurrentYear() {
+  const year = document.getElementById("currentYear");
+  if (year) year.textContent = new Date().getFullYear();
+}
 
 document.addEventListener("DOMContentLoaded", () => {
-
-  renderNextEvent();
-
-  renderSchedule("all");
-
+  setupScheduleFilters();
+  setupMessageCounter();
+  setupJoinForm();
+  setCurrentYear();
+  loadSchedule();
+  loadStaff();
+  loadSeasonRecords();
 });

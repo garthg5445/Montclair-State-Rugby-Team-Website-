@@ -6,3 +6,4 @@ Flask-WTF>=1.2
 flask-talisman>=1.0
 pyotp>=2.9
 python-dotenv>=1.0
+Pillow>=10.0

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
 
-  <title>Admin | Team Website</title>
-  
+  <title>Admin | MSU Rugby Club</title>
+
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <!-- Bootstrap -->
@@ -17,23 +17,44 @@
     crossorigin="anonymous"
   >
 
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
   <!--CSS-->
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="bg-light">
+<body class="admin-page">
 
 <!--NAVBAR-->
-<nav class="navbar navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark admin-navbar">
   <div class="container">
 
-    <a class="navbar-brand fw-bold" href="/">TEAM NAME</a>
+    <a class="navbar-brand admin-brand" href="/">
+      <span>MSU RUGBY CLUB</span>
+      <small>ADMIN</small>
+    </a>
 
-    <div id="adminNavInfo" class="d-none">
-      <span id="adminEmail" class="text-white-50 me-3 small"></span>
-      <button id="logoutButton" class="btn btn-outline-light btn-sm">
-        Log Out
-      </button>
+    <div class="ms-auto d-flex align-items-center flex-wrap justify-content-end">
+      <a id="backHomeButton" class="nav-link admin-back-btn d-none" href="/">
+        Back
+      </a>
+
+      <div id="adminNavInfo" class="d-none d-flex align-items-center flex-wrap">
+        <a class="nav-link" href="#admin-schedule">Schedule</a>
+        <a class="nav-link" href="#admin-season-records">Season Records</a>
+        <a class="nav-link" href="#admin-staff">Staff</a>
+        <a class="nav-link" href="#admin-submissions">Join Form Submissions</a>
+        <span id="adminEmail" class="nav-link admin-email"></span>
+        <button id="logoutButton" class="nav-link border-0 bg-transparent" type="button">
+          Log Out
+        </button>
+      </div>
     </div>
 
   </div>
@@ -50,11 +71,11 @@
       <div class="col-md-6 col-lg-5">
 
         <div class="section-heading text-center mb-4">
-          <span class="section-label">ADMIN</span>
-          <h2>Sign In</h2>
+          <span class="section-kicker">ADMIN</span>
+          <h2>SIGN IN</h2>
         </div>
 
-        <div class="card shadow-sm border-0">
+        <div class="admin-panel-card">
 
           <div class="card-body p-4">
 
@@ -70,7 +91,7 @@
                 <input type="password" class="form-control" id="loginPassword" autocomplete="current-password" required>
               </div>
 
-              <button type="submit" class="btn btn-primary w-100">
+              <button type="submit" class="btn btn-team w-100">
                 Sign In
               </button>
 
@@ -91,47 +112,313 @@
 </section>
 
 
-<!--SUBMISSIONS-->
-<section id="submissionsSection" class="py-5 d-none">
+<!--ADMIN DASHBOARD-->
+<div id="adminDashboard" class="d-none">
 
-  <div class="container">
+  <!--SCHEDULE-->
+  <section id="admin-schedule" class="py-5">
 
-    <div class="section-heading text-center mb-4">
-      <span class="section-label">RECRUITMENT</span>
-      <h2>Join Form Submissions</h2>
-      <p id="submissionCount" class="lead mb-0"></p>
-    </div>
+    <div class="container">
 
-    <div id="submissionsError" class="alert alert-danger d-none" role="alert"></div>
-
-    <div class="card shadow-sm border-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-dark">
-            <tr>
-              <th scope="col">Submitted</th>
-              <th scope="col">Full Name</th>
-              <th scope="col">Email</th>
-              <th scope="col">Position / Role</th>
-              <th scope="col">Experience</th>
-              <th scope="col">Comments</th>
-              <th scope="col"></th>
-            </tr>
-          </thead>
-          <tbody id="submissionsBody"></tbody>
-        </table>
+      <div class="section-heading text-center mb-4">
+        <span class="section-kicker">TEAM</span>
+        <h2>SCHEDULE</h2>
+        <p class="lead mb-0">Add practices and games for the welcome page.</p>
       </div>
+
+      <div id="eventsError" class="alert alert-danger d-none" role="alert"></div>
+      <div id="eventsSuccess" class="alert alert-success d-none" role="alert"></div>
+
+      <div class="admin-panel-card mb-4">
+        <div class="card-body p-4">
+          <h3 class="h5 mb-3" id="eventFormTitle">Add Event</h3>
+          <form id="eventForm">
+            <input type="hidden" id="eventId" value="">
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="eventType" class="form-label">Type</label>
+                <select class="form-select" id="eventType" required>
+                  <option value="game">Game</option>
+                  <option value="practice">Practice</option>
+                </select>
+              </div>
+
+              <div class="col-md-4" id="homeAwayGroup">
+                <label for="eventHomeAway" class="form-label">Home / Away</label>
+                <select class="form-select" id="eventHomeAway">
+                  <option value="home">Home</option>
+                  <option value="away">Away</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="eventStatus" class="form-label">Status</label>
+                <select class="form-select" id="eventStatus" required>
+                  <option value="scheduled">Scheduled</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="postponed">Postponed</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="eventOpponent" class="form-label" id="eventOpponentLabel">Opposing Team</label>
+                <input type="text" class="form-control" id="eventOpponent" maxlength="100">
+              </div>
+
+              <div class="col-md-6">
+                <label for="eventLocation" class="form-label">Location (optional)</label>
+                <input type="text" class="form-control" id="eventLocation" maxlength="150">
+              </div>
+
+              <div class="col-md-6">
+                <label for="eventDate" class="form-label">Date</label>
+                <input type="date" class="form-control" id="eventDate" required>
+              </div>
+
+              <div class="col-md-6">
+                <label for="eventTime" class="form-label">Time</label>
+                <input type="time" class="form-control" id="eventTime" required>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-team" id="eventSubmitButton">Add Event</button>
+              <button type="button" class="btn btn-outline-secondary d-none" id="eventCancelEdit">Cancel Edit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="admin-panel-card">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Time</th>
+                <th scope="col">Type</th>
+                <th scope="col">Team / Session</th>
+                <th scope="col">Home/Away</th>
+                <th scope="col">Status</th>
+                <th scope="col">Location</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody id="eventsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
-    <nav class="d-flex justify-content-center align-items-center gap-3 mt-4">
-      <button id="prevPage" class="btn btn-outline-primary" disabled>Previous</button>
-      <span id="pageInfo" class="small text-muted"></span>
-      <button id="nextPage" class="btn btn-outline-primary" disabled>Next</button>
-    </nav>
+  </section>
 
-  </div>
 
-</section>
+  <!--SEASON RECORDS-->
+  <section id="admin-season-records" class="py-5 bg-light">
+
+    <div class="container">
+
+      <div class="section-heading text-center mb-4">
+        <span class="section-kicker">RESULTS</span>
+        <h2>SEASON RECORDS</h2>
+        <p class="lead mb-0">Track wins and losses by season. The current season appears under Schedule on the home page.</p>
+      </div>
+
+      <div id="seasonRecordsError" class="alert alert-danger d-none" role="alert"></div>
+      <div id="seasonRecordsSuccess" class="alert alert-success d-none" role="alert"></div>
+
+      <div class="admin-panel-card mb-4">
+        <div class="card-body p-4">
+          <h3 class="h5 mb-3" id="seasonRecordFormTitle">Add Season Record</h3>
+          <form id="seasonRecordForm">
+            <input type="hidden" id="seasonRecordId" value="">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="seasonLabel" class="form-label">Season</label>
+                <select class="form-select" id="seasonLabel" required>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="seasonWins" class="form-label">Wins</label>
+                <input type="number" class="form-control" id="seasonWins" min="0" step="1" required>
+              </div>
+              <div class="col-md-4">
+                <label for="seasonLosses" class="form-label">Losses</label>
+                <input type="number" class="form-control" id="seasonLosses" min="0" step="1" required>
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-team" id="seasonRecordSubmitButton">Add Season Record</button>
+              <button type="button" class="btn btn-outline-secondary d-none" id="seasonRecordCancelEdit">Cancel Edit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="admin-panel-card">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th scope="col">Season</th>
+                <th scope="col">Wins</th>
+                <th scope="col">Losses</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody id="seasonRecordsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!--STAFF-->
+  <section id="admin-staff" class="py-5 bg-white">
+
+    <div class="container">
+
+      <div class="section-heading text-center mb-4">
+        <span class="section-kicker">LEADERSHIP</span>
+        <h2>STAFF</h2>
+        <p class="lead mb-0">Update the president, coach, and captain shown on the site.</p>
+      </div>
+
+      <div class="row g-4">
+
+        <div class="col-md-4">
+          <div class="admin-panel-card h-100">
+            <div class="card-body p-4">
+              <h3 class="h5 mb-3">President</h3>
+              <form id="presidentForm">
+                <div class="mb-3">
+                  <label for="presidentName" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="presidentName" maxlength="100">
+                </div>
+                <div class="mb-3">
+                  <label for="presidentImage" class="form-label">Photo (200×200)</label>
+                  <div id="presidentImagePreview" class="staff-photo-preview">MSU</div>
+                  <input type="file" class="form-control mt-2" id="presidentImage" accept="image/png,image/jpeg,image/webp">
+                  <div class="form-text">Upload a square photo. It will be saved at 200×200.</div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-team">Save President</button>
+                  <button type="button" class="btn btn-outline-secondary" id="presidentImageUpload">Upload Photo</button>
+                </div>
+              </form>
+              <div id="presidentError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
+              <div id="presidentSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="admin-panel-card h-100">
+            <div class="card-body p-4">
+              <h3 class="h5 mb-3">Coach</h3>
+              <form id="coachForm">
+                <div class="mb-3">
+                  <label for="coachName" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="coachName" maxlength="100">
+                </div>
+                <div class="mb-3">
+                  <label for="coachImage" class="form-label">Photo (200×200)</label>
+                  <div id="coachImagePreview" class="staff-photo-preview">MSU</div>
+                  <input type="file" class="form-control mt-2" id="coachImage" accept="image/png,image/jpeg,image/webp">
+                  <div class="form-text">Upload a square photo. It will be saved at 200×200.</div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-team">Save Coach</button>
+                  <button type="button" class="btn btn-outline-secondary" id="coachImageUpload">Upload Photo</button>
+                </div>
+              </form>
+              <div id="coachError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
+              <div id="coachSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="admin-panel-card h-100">
+            <div class="card-body p-4">
+              <h3 class="h5 mb-3">Captain</h3>
+              <form id="captainForm">
+                <div class="mb-3">
+                  <label for="captainName" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="captainName" maxlength="100">
+                </div>
+                <div class="mb-3">
+                  <label for="captainImage" class="form-label">Photo (200×200)</label>
+                  <div id="captainImagePreview" class="staff-photo-preview">MSU</div>
+                  <input type="file" class="form-control mt-2" id="captainImage" accept="image/png,image/jpeg,image/webp">
+                  <div class="form-text">Upload a square photo. It will be saved at 200×200.</div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-team">Save Captain</button>
+                  <button type="button" class="btn btn-outline-secondary" id="captainImageUpload">Upload Photo</button>
+                </div>
+              </form>
+              <div id="captainError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
+              <div id="captainSuccess" class="alert alert-success mt-3 mb-0 d-none" role="alert"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!--SUBMISSIONS-->
+  <section id="admin-submissions" class="py-5">
+
+    <div class="container">
+
+      <div class="section-heading text-center mb-4">
+        <span class="section-kicker">RECRUITMENT</span>
+        <h2>JOIN FORM SUBMISSIONS</h2>
+        <p id="submissionCount" class="lead mb-0"></p>
+      </div>
+
+      <div id="submissionsError" class="alert alert-danger d-none" role="alert"></div>
+
+      <div class="admin-panel-card">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th scope="col" class="col-submitted">Submitted</th>
+                <th scope="col" class="col-name">Full Name</th>
+                <th scope="col" class="col-email">Email</th>
+                <th scope="col" class="col-position">Position / Role</th>
+                <th scope="col" class="col-experience">Experience</th>
+                <th scope="col" class="col-comments">Comments</th>
+                <th scope="col" class="col-actions"></th>
+              </tr>
+            </thead>
+            <tbody id="submissionsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <nav class="d-flex justify-content-center align-items-center gap-3 mt-4">
+        <button id="prevPage" class="btn btn-outline-primary" disabled>Previous</button>
+        <span id="pageInfo" class="small text-muted"></span>
+        <button id="nextPage" class="btn btn-outline-primary" disabled>Next</button>
+      </nav>
+
+    </div>
+
+  </section>
+
+</div>
 
 
 <!--Custom JavaScript -->

@@ -112,5 +112,45 @@ class RecruitmentSubmission(db.Model):
     Email = db.Column(db.String(254), nullable=False)
     Position = db.Column(db.String(50), nullable=False)
     ExperienceLevel = db.Column(db.String(50), nullable=False)
-    Comments = db.Column(db.String(2000))
+    Comments = db.Column(db.String(300))
     SubmittedAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now, index=True)
+
+
+class ScheduleEvent(db.Model):
+    __tablename__ = "schedule_event"
+
+    EventID = db.Column("EventID", db.Text, primary_key=True)
+    EventType = db.Column(db.String(20), nullable=False)  # game | practice
+    Opponent = db.Column(db.String(100))  # opposing team for games; optional label for practices
+    HomeAway = db.Column(db.String(10))  # home | away (games only)
+    Status = db.Column(db.String(20), nullable=False, default="scheduled")
+    EventDate = db.Column(db.Date, nullable=False, index=True)
+    EventTime = db.Column(db.String(20), nullable=False)
+    Location = db.Column(db.String(150))
+    CreatedAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+
+
+class TeamStaff(db.Model):
+    __tablename__ = "team_staff"
+
+    ConfigID = db.Column("ConfigID", db.Text, primary_key=True)
+    PresidentName = db.Column(db.String(100))
+    PresidentEmail = db.Column(db.String(254))
+    PresidentImage = db.Column(db.String(255))
+    CoachName = db.Column(db.String(100))
+    CoachEmail = db.Column(db.String(254))
+    CoachImage = db.Column(db.String(255))
+    CaptainName = db.Column(db.String(100))
+    CaptainEmail = db.Column(db.String(254))
+    CaptainImage = db.Column(db.String(255))
+    UpdatedAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+
+
+class SeasonRecord(db.Model):
+    __tablename__ = "season_record"
+
+    RecordID = db.Column("RecordID", db.Text, primary_key=True)
+    SeasonLabel = db.Column(db.String(20), nullable=False, unique=True)  # e.g. 2024-2025
+    Wins = db.Column(db.Integer, nullable=False, default=0)
+    Losses = db.Column(db.Integer, nullable=False, default=0)
+    CreatedAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)

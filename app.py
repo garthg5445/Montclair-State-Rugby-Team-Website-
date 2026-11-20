@@ -12,14 +12,15 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect, CSRFError #security
 from flask_talisman import Talisman #security import
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 from models import (
 	db, UserDataTable, Major, Player, SportSeason, SportSeasonPlayer,
-	AdminAccount, RecruitmentSubmission
+	AdminAccount, RecruitmentSubmission, ScheduleEvent, TeamStaff, SeasonRecord
 )
 
 #security import
@@ -27,18 +28,37 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
-SITE_FILES = {"main.html", "admin.html", "script.js", "admin.js", "style.css"}
+SITE_FILES = {"index.html", "main.html", "admin.html", "script.js", "admin.js", "style.css"}
 
-# These must match the <option> values in the join form in main.html.
-POSITION_CHOICES = {"Player", "Goalkeeper", "Defense", "Midfield", "Forward", "Other"}
-EXPERIENCE_CHOICES = {"No experience", "Beginner", "Intermediate", "Advanced", "Competitive"}
+# These must match the <option> values in the join form in index.html.
+POSITION_CHOICES = {
+	"Loosehead Prop (1)", "Hooker (2)", "Tighthead Prop (3)", "Lock (4)", "Lock (5)",
+	"Blindside Flanker (6)", "Openside Flanker (7)", "Number 8 (8)",
+	"Scrum-half (9)", "Fly-half (10)", "Left Wing (11)", "Inside Centre (12)",
+	"Outside Centre (13)", "Right Wing (14)", "Full-back (15)", "Not Sure Yet"
+}
+EXPERIENCE_CHOICES = {"None", "Beginner", "Intermediate", "Advanced"}
 
 EMAIL_PATTERN = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 MIN_ADMIN_PASSWORD_LENGTH = 10
 
 # Routes under /api/ that do not require the X-API-Key header.
-PUBLIC_API_PATHS = {"/api/recruitment"}
+PUBLIC_API_PATHS = {"/api/recruitment", "/api/events", "/api/staff", "/api/season-records"}
 SESSION_API_PREFIX = "/api/admin/"
+
+EVENT_TYPE_CHOICES = {"game", "practice"}
+HOME_AWAY_CHOICES = {"home", "away"}
+EVENT_STATUS_CHOICES = {"scheduled", "cancelled", "postponed"}
+STAFF_CONFIG_ID = "main"
+SEASON_LABEL_PATTERN = re.compile(r"^\d{4}-\d{4}$")
+STAFF_UPLOAD_DIR = os.path.join(SITE_DIR, "uploads", "staff")
+STAFF_IMAGE_SIZE = (200, 200)
+STAFF_IMAGE_FIELDS = {
+	"president": "PresidentImage",
+	"coach": "CoachImage",
+	"captain": "CaptainImage"
+}
+ALLOWED_STAFF_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 DEFAULT_CORS_ORIGINS = (
 	"http://localhost:3000,"
@@ -276,7 +296,7 @@ def configure_extensions(app):
 		app,
 		resources={r"/api/*": {"origins": csv_env("CORS_ORIGINS", DEFAULT_CORS_ORIGINS)}},
 		allow_headers=["Content-Type", "X-API-Key", "X-CSRF-Token"],
-		methods=["GET", "POST", "DELETE", "OPTIONS"],
+		methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		supports_credentials=False
 	)
 
@@ -294,7 +314,10 @@ def register_security(app):
 		if not request.path.startswith("/api/") or request.method == "OPTIONS":
 			return None
 
-		if request.path in PUBLIC_API_PATHS or request.path.startswith(SESSION_API_PREFIX):
+		if (
+			request.path in PUBLIC_API_PATHS
+			or request.path.startswith(SESSION_API_PREFIX)
+		):
 			return None
 
 		configured_key = app.config.get("API_KEY")
@@ -345,11 +368,19 @@ def register_health_route(app, limiter):
 def register_site_routes(app):
 	@app.route("/", methods=["GET"])
 	def home_page():
-		return render_template("main.html")
+		return render_template("index.html")
 
 	@app.route("/admin", methods=["GET"])
 	def admin_page():
 		return render_template("admin.html")
+
+	@app.route("/uploads/staff/<path:filename>", methods=["GET"])
+	def staff_upload_file(filename):
+		return send_from_directory(STAFF_UPLOAD_DIR, filename)
+
+	@app.route("/images/<path:filename>", methods=["GET"])
+	def site_image_file(filename):
+		return send_from_directory(os.path.join(SITE_DIR, "images"), filename)
 
 	@app.route("/<string:filename>", methods=["GET"])
 	def site_file(filename):
@@ -523,6 +554,421 @@ def register_admin_routes(app, limiter):
 		db.session.delete(submission)
 		db.session.commit()
 		return jsonify({"message": "Submission deleted"})
+
+	@app.route("/api/admin/events", methods=["GET"])
+	@limiter.limit("60 per minute", override_defaults=False)
+	def admin_list_events():
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		events = db.session.scalars(
+			select(ScheduleEvent).order_by(ScheduleEvent.EventDate, ScheduleEvent.EventTime, ScheduleEvent.EventID)
+		).all()
+		return jsonify({"events": [event_to_dict(event) for event in events]})
+
+	@app.route("/api/admin/events", methods=["POST"])
+	@limiter.limit("30 per minute", override_defaults=False)
+	def admin_create_event():
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		data, error = request_object()
+		if error:
+			return error
+		event_data, validation_error = validate_event_data(data)
+		if validation_error:
+			return jsonify({"error": validation_error}), 400
+		event = ScheduleEvent(EventID=str(uuid.uuid4()), **event_data)
+		db.session.add(event)
+		db.session.commit()
+		return jsonify(event_to_dict(event)), 201
+
+	@app.route("/api/admin/events/<string:event_id>", methods=["PUT"])
+	@limiter.limit("30 per minute", override_defaults=False)
+	def admin_update_event(event_id):
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		event = db.session.get(ScheduleEvent, event_id)
+		if event is None:
+			return jsonify({"error": "Event was not found"}), 404
+		data, error = request_object()
+		if error:
+			return error
+		event_data, validation_error = validate_event_data(data)
+		if validation_error:
+			return jsonify({"error": validation_error}), 400
+		for key, value in event_data.items():
+			setattr(event, key, value)
+		db.session.commit()
+		return jsonify(event_to_dict(event))
+
+	@app.route("/api/admin/events/<string:event_id>", methods=["DELETE"])
+	@limiter.limit("30 per minute", override_defaults=False)
+	def admin_delete_event(event_id):
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		event = db.session.get(ScheduleEvent, event_id)
+		if event is None:
+			return jsonify({"error": "Event was not found"}), 404
+		db.session.delete(event)
+		db.session.commit()
+		return jsonify({"message": "Event deleted"})
+
+	@app.route("/api/admin/staff", methods=["GET"])
+	@limiter.limit("60 per minute", override_defaults=False)
+	def admin_get_staff():
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		return jsonify(staff_to_dict(get_or_create_staff()))
+
+	@app.route("/api/admin/staff", methods=["PUT"])
+	@limiter.limit("20 per minute", override_defaults=False)
+	def admin_update_staff():
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		data, error = request_object()
+		if error:
+			return error
+		staff_data, validation_error = validate_staff_data(data)
+		if validation_error:
+			return jsonify({"error": validation_error}), 400
+		staff = get_or_create_staff()
+		for key, value in staff_data.items():
+			setattr(staff, key, value)
+		db.session.commit()
+		return jsonify(staff_to_dict(staff))
+
+	@app.route("/api/admin/staff/<string:role>/image", methods=["POST"])
+	@limiter.limit("20 per minute", override_defaults=False)
+	def admin_upload_staff_image(role):
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+
+		role_key = (role or "").strip().lower()
+		image_field = STAFF_IMAGE_FIELDS.get(role_key)
+		if image_field is None:
+			return jsonify({"error": "Staff role was not found"}), 404
+
+		upload = request.files.get("image")
+		if upload is None or not upload.filename:
+			return jsonify({"error": "An image file is required"}), 400
+
+		content_type = (upload.mimetype or "").lower()
+		if content_type not in ALLOWED_STAFF_IMAGE_TYPES:
+			return jsonify({"error": "Image must be a JPG, PNG, or WEBP file"}), 400
+
+		try:
+			from PIL import Image
+			image = Image.open(upload.stream).convert("RGB")
+			image = crop_to_square(image).resize(STAFF_IMAGE_SIZE, Image.Resampling.LANCZOS)
+		except Exception:
+			return jsonify({"error": "Could not read that image file"}), 400
+
+		os.makedirs(STAFF_UPLOAD_DIR, exist_ok=True)
+		filename = f"{role_key}-{uuid.uuid4().hex}.jpg"
+		filepath = os.path.join(STAFF_UPLOAD_DIR, filename)
+		image.save(filepath, format="JPEG", quality=90)
+
+		staff = get_or_create_staff()
+		old_name = getattr(staff, image_field, None)
+		setattr(staff, image_field, filename)
+		db.session.commit()
+
+		if old_name and old_name != filename:
+			old_path = os.path.join(STAFF_UPLOAD_DIR, secure_filename(old_name))
+			if os.path.isfile(old_path):
+				try:
+					os.remove(old_path)
+				except OSError:
+					pass
+
+		return jsonify({"imageUrl": f"/uploads/staff/{filename}", "filename": filename})
+
+	@app.route("/api/admin/season-records", methods=["GET"])
+	@limiter.limit("60 per minute", override_defaults=False)
+	def admin_list_season_records():
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		return jsonify({"records": list_season_records()})
+
+	@app.route("/api/admin/season-records", methods=["POST"])
+	@limiter.limit("30 per minute", override_defaults=False)
+	def admin_create_season_record():
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		data, error = request_object()
+		if error:
+			return error
+		record_data, validation_error = validate_season_record_data(data)
+		if validation_error:
+			return jsonify({"error": validation_error}), 400
+		existing = db.session.scalar(
+			select(SeasonRecord).where(SeasonRecord.SeasonLabel == record_data["SeasonLabel"])
+		)
+		if existing is not None:
+			return jsonify({"error": "A record for that season already exists"}), 409
+		record = SeasonRecord(RecordID=str(uuid.uuid4()), **record_data)
+		db.session.add(record)
+		db.session.commit()
+		return jsonify(season_record_to_dict(record)), 201
+
+	@app.route("/api/admin/season-records/<string:record_id>", methods=["PUT"])
+	@limiter.limit("30 per minute", override_defaults=False)
+	def admin_update_season_record(record_id):
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		record = db.session.get(SeasonRecord, record_id)
+		if record is None:
+			return jsonify({"error": "Season record was not found"}), 404
+		data, error = request_object()
+		if error:
+			return error
+		record_data, validation_error = validate_season_record_data(data)
+		if validation_error:
+			return jsonify({"error": validation_error}), 400
+		duplicate = db.session.scalar(
+			select(SeasonRecord).where(
+				SeasonRecord.SeasonLabel == record_data["SeasonLabel"],
+				SeasonRecord.RecordID != record_id
+			)
+		)
+		if duplicate is not None:
+			return jsonify({"error": "A record for that season already exists"}), 409
+		for key, value in record_data.items():
+			setattr(record, key, value)
+		db.session.commit()
+		return jsonify(season_record_to_dict(record))
+
+	@app.route("/api/admin/season-records/<string:record_id>", methods=["DELETE"])
+	@limiter.limit("30 per minute", override_defaults=False)
+	def admin_delete_season_record(record_id):
+		if current_admin() is None:
+			return jsonify({"error": "Unauthorized"}), 401
+		record = db.session.get(SeasonRecord, record_id)
+		if record is None:
+			return jsonify({"error": "Season record was not found"}), 404
+		db.session.delete(record)
+		db.session.commit()
+		return jsonify({"message": "Season record deleted"})
+
+def event_to_dict(event):
+	return {
+		"EventID": event.EventID,
+		"EventType": event.EventType,
+		"Opponent": event.Opponent,
+		"HomeAway": event.HomeAway,
+		"Status": event.Status,
+		"EventDate": event.EventDate.isoformat() if event.EventDate else None,
+		"EventTime": event.EventTime,
+		"Location": event.Location
+	}
+
+def staff_image_url(filename):
+	if not filename:
+		return ""
+	return f"/uploads/staff/{secure_filename(filename)}"
+
+def staff_to_dict(staff):
+	return {
+		"PresidentName": staff.PresidentName or "",
+		"CoachName": staff.CoachName or "",
+		"CaptainName": staff.CaptainName or "",
+		"PresidentImage": staff_image_url(getattr(staff, "PresidentImage", None)),
+		"CoachImage": staff_image_url(getattr(staff, "CoachImage", None)),
+		"CaptainImage": staff_image_url(getattr(staff, "CaptainImage", None))
+	}
+
+def get_or_create_staff():
+	staff = db.session.get(TeamStaff, STAFF_CONFIG_ID)
+	if staff is None:
+		staff = TeamStaff(ConfigID=STAFF_CONFIG_ID)
+		db.session.add(staff)
+		db.session.commit()
+	return staff
+
+def crop_to_square(image):
+	width, height = image.size
+	side = min(width, height)
+	left = (width - side) // 2
+	top = (height - side) // 2
+	return image.crop((left, top, left + side, top + side))
+
+def ensure_staff_image_columns():
+	os.makedirs(STAFF_UPLOAD_DIR, exist_ok=True)
+	with db.engine.begin() as connection:
+		existing = {
+			row[1]
+			for row in connection.execute(text("PRAGMA table_info(team_staff)")).fetchall()
+		}
+		for column_name in ("PresidentImage", "CoachImage", "CaptainImage"):
+			if column_name not in existing:
+				connection.execute(text(f"ALTER TABLE team_staff ADD COLUMN {column_name} VARCHAR(255)"))
+
+def validate_event_data(data):
+	event_type, error = validate_choice(data.get("EventType"), "EventType", EVENT_TYPE_CHOICES)
+	if error:
+		return None, error
+
+	status, error = validate_choice(data.get("Status"), "Status", EVENT_STATUS_CHOICES)
+	if error:
+		return None, error
+
+	event_date = parse_date(data.get("EventDate"))
+	if event_date is None:
+		return None, "EventDate is not a valid date or is not in YYYY-MM-DD format."
+
+	event_time, error = validate_string(
+		data.get("EventTime"), "EventTime", True, column_max_length(ScheduleEvent, "EventTime")
+	)
+	if error:
+		return None, error
+
+	location, error = validate_string(
+		data.get("Location"), "Location", False, column_max_length(ScheduleEvent, "Location")
+	)
+	if error:
+		return None, error
+
+	opponent, error = validate_string(
+		data.get("Opponent"), "Opponent", False, column_max_length(ScheduleEvent, "Opponent")
+	)
+	if error:
+		return None, error
+
+	home_away = None
+	if event_type == "game":
+		if not opponent:
+			return None, "Opponent is required for games"
+		home_away, error = validate_choice(data.get("HomeAway"), "HomeAway", HOME_AWAY_CHOICES)
+		if error:
+			return None, error
+	else:
+		raw_home_away = data.get("HomeAway")
+		if raw_home_away not in (None, ""):
+			home_away, error = validate_choice(raw_home_away, "HomeAway", HOME_AWAY_CHOICES)
+			if error:
+				return None, error
+		if not opponent:
+			opponent = "Team Practice"
+
+	return {
+		"EventType": event_type,
+		"Opponent": opponent,
+		"HomeAway": home_away,
+		"Status": status,
+		"EventDate": event_date,
+		"EventTime": event_time,
+		"Location": location
+	}, None
+
+def validate_staff_data(data):
+	fields = {}
+	for field_name in (
+		"PresidentName", "CoachName", "CaptainName"
+	):
+		value, error = validate_string(
+			data.get(field_name), field_name, False, column_max_length(TeamStaff, field_name)
+		)
+		if error:
+			return None, error
+		fields[field_name] = value
+
+	return fields, None
+
+def season_record_to_dict(record):
+	return {
+		"RecordID": record.RecordID,
+		"SeasonLabel": record.SeasonLabel,
+		"Wins": record.Wins,
+		"Losses": record.Losses
+	}
+
+def current_academic_season_label(today=None):
+	today = today or date.today()
+	start_year = today.year if today.month >= 8 else today.year - 1
+	return f"{start_year}-{start_year + 1}"
+
+def season_sort_key(label):
+	try:
+		return int(label.split("-")[0])
+	except (TypeError, ValueError, IndexError):
+		return 0
+
+def list_season_records():
+	records = db.session.scalars(select(SeasonRecord)).all()
+	return sorted(
+		[season_record_to_dict(record) for record in records],
+		key=lambda item: season_sort_key(item["SeasonLabel"]),
+		reverse=True
+	)
+
+def season_records_summary():
+	records = list_season_records()
+	current_label = current_academic_season_label()
+	current = next((record for record in records if record["SeasonLabel"] == current_label), None)
+	total_wins = sum(record["Wins"] for record in records)
+	total_losses = sum(record["Losses"] for record in records)
+	return {
+		"records": records,
+		"currentSeason": current_label,
+		"currentRecord": current or {"SeasonLabel": current_label, "Wins": 0, "Losses": 0},
+		"allTime": {"Wins": total_wins, "Losses": total_losses}
+	}
+
+def validate_season_record_data(data):
+	season_label, error = validate_string(
+		data.get("SeasonLabel"), "SeasonLabel", True, column_max_length(SeasonRecord, "SeasonLabel")
+	)
+	if error:
+		return None, error
+	if SEASON_LABEL_PATTERN.fullmatch(season_label) is None:
+		return None, "SeasonLabel must look like 2024-2025"
+
+	start_year, end_year = season_label.split("-")
+	if int(end_year) != int(start_year) + 1:
+		return None, "SeasonLabel years must be consecutive (for example 2024-2025)"
+
+	def parse_count(value, field_name):
+		if isinstance(value, bool) or not isinstance(value, (int, str)):
+			return None, f"{field_name} must be a whole number"
+		if isinstance(value, str):
+			value = value.strip()
+			if not value.isdigit():
+				return None, f"{field_name} must be a whole number"
+			value = int(value)
+		if value < 0:
+			return None, f"{field_name} cannot be negative"
+		return value, None
+
+	wins, error = parse_count(data.get("Wins"), "Wins")
+	if error:
+		return None, error
+	losses, error = parse_count(data.get("Losses"), "Losses")
+	if error:
+		return None, error
+
+	return {
+		"SeasonLabel": season_label,
+		"Wins": wins,
+		"Losses": losses
+	}, None
+
+def register_public_content_routes(app, limiter):
+	@app.route("/api/events", methods=["GET"])
+	@limiter.limit("60 per minute", override_defaults=False)
+	def list_events():
+		events = db.session.scalars(
+			select(ScheduleEvent).order_by(ScheduleEvent.EventDate, ScheduleEvent.EventTime, ScheduleEvent.EventID)
+		).all()
+		return jsonify({"events": [event_to_dict(event) for event in events]})
+
+	@app.route("/api/staff", methods=["GET"])
+	@limiter.limit("60 per minute", override_defaults=False)
+	def list_staff():
+		return jsonify(staff_to_dict(get_or_create_staff()))
+
+	@app.route("/api/season-records", methods=["GET"])
+	@limiter.limit("60 per minute", override_defaults=False)
+	def list_public_season_records():
+		return jsonify(season_records_summary())
 
 def register_user_routes(app, limiter):
 	@app.route("/api/users", methods=["GET"])
@@ -738,6 +1184,7 @@ def register_cli_commands(app):
 	@app.cli.command("init-db")
 	def init_db():
 		db.create_all()
+		ensure_staff_image_columns()
 		print("Database initialized.")
 
 	@app.cli.command("create-admin")
@@ -786,6 +1233,7 @@ def create_app():
 	register_health_route(app, limiter)
 	register_site_routes(app)
 	register_recruitment_routes(app, limiter)
+	register_public_content_routes(app, limiter)
 	register_admin_routes(app, limiter)
 	register_user_routes(app, limiter)
 	register_major_routes(app, limiter)
@@ -805,6 +1253,7 @@ if __name__ == "__main__":
 	if create_tables:
 		with app.app_context():
 			db.create_all()
+			ensure_staff_image_columns()
 
 	app.run(
 		host=os.getenv("HOST", "127.0.0.1"),
