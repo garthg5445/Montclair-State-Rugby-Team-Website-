@@ -297,7 +297,7 @@ a {
   inset: 0;
 
   background-image:
-    url("https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=2000&q=85");
+    url("/images/hero-rugby.jpg");
 
   background-size: cover;
 

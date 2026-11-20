@@ -378,6 +378,10 @@ def register_site_routes(app):
 	def staff_upload_file(filename):
 		return send_from_directory(STAFF_UPLOAD_DIR, filename)
 
+	@app.route("/images/<path:filename>", methods=["GET"])
+	def site_image_file(filename):
+		return send_from_directory(os.path.join(SITE_DIR, "images"), filename)
+
 	@app.route("/<string:filename>", methods=["GET"])
 	def site_file(filename):
 		if filename not in SITE_FILES:
