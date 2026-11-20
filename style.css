@@ -1675,11 +1675,41 @@ footer hr {
   width: 100%;
 }
 
+#admin-submissions .col-submitted {
+  width: 12%;
+}
+
+#admin-submissions .col-name {
+  width: 12%;
+}
+
+#admin-submissions .col-email {
+  width: 14%;
+}
+
+#admin-submissions .col-position {
+  width: 12%;
+}
+
+#admin-submissions .col-experience {
+  width: 10%;
+}
+
+#admin-submissions .col-comments {
+  width: 32%;
+}
+
+#admin-submissions .col-actions {
+  width: 8%;
+}
+
 #admin-submissions .comments-cell {
   white-space: normal;
   word-break: break-word;
   overflow-wrap: anywhere;
-  max-width: 100%;
+  min-width: 280px;
+  line-height: 1.45;
+  vertical-align: top;
 }
 
 .staff-photo-preview {
