@@ -248,20 +248,31 @@ def season_to_dict(season):
 
 # This configures the app and changes the database url if it is incompatible.
 def configure_app(app):
-	database_url = os.getenv("DATABASE_URL", "sqlite:///school.db")
+	# Use a stable project-local SQLite path so cwd/PyCharm differences don't create empty DBs.
+	default_sqlite_path = os.path.join(SITE_DIR, "instance", "school.db").replace("\\", "/")
+	database_url = os.getenv("DATABASE_URL", f"sqlite:///{default_sqlite_path}")
 
 	if database_url.startswith("postgres://"):
 		database_url = "postgresql://" + database_url[len("postgres://"):]
 
-	#changed
+	if database_url.startswith("sqlite:///"):
+		sqlite_path = database_url.replace("sqlite:///", "", 1)
+		sqlite_dir = os.path.dirname(sqlite_path)
+		if sqlite_dir:
+			os.makedirs(sqlite_dir, exist_ok=True)
+
+	# Local SQLite runs work with no env vars. Non-SQLite / production still requires SECRET_KEY.
 	secret_key = os.getenv("SECRET_KEY")
-	is_production = os.getenv("FLASK_DEBUG", "false").strip().lower() not in {"1", "true", "yes"}
-	
+	using_sqlite = database_url.startswith("sqlite:")
+	force_production = os.getenv("FLASK_ENV", "").strip().lower() == "production" or os.getenv(
+		"REQUIRE_SECRET_KEY", ""
+	).strip().lower() in {"1", "true", "yes"}
+
 	if not secret_key:
-		if is_production:
+		if force_production or not using_sqlite:
 			raise ValueError("FATAL: SECRET_KEY environment variable is not set. Refusing to start in production.")
-		secret_key = secrets.token_hex(32)
-		app.logger.warning("SECRET_KEY is not set; using temporary key for development.")
+		secret_key = "dev-local-secret"
+		app.logger.warning("SECRET_KEY is not set; using built-in local development key.")
 
 	app.config.update(
 		SQLALCHEMY_DATABASE_URI=database_url,
@@ -1224,6 +1235,40 @@ def register_cli_commands(app):
 		db.session.commit()
 		print(f"Admin account {admin.Email} deleted.")
 
+def ensure_default_admin():
+	"""Create a shared local admin account if none exists yet."""
+	existing = db.session.scalar(select(AdminAccount).limit(1))
+	if existing is not None:
+		return
+
+	email = os.getenv("DEFAULT_ADMIN_EMAIL", "coach@example.com").strip().lower()
+	password = os.getenv("DEFAULT_ADMIN_PASSWORD", "supersecret1")
+	db.session.add(AdminAccount(
+		AdminID=str(uuid.uuid4()),
+		Email=email,
+		PasswordHash=generate_password_hash(password)
+	))
+	db.session.commit()
+	print(f"Default admin created: {email} / {password}")
+
+def ensure_database_ready(app):
+	"""Create missing tables automatically so local teammates can run without extra setup."""
+	database_url = str(app.config.get("SQLALCHEMY_DATABASE_URI", ""))
+	using_sqlite = database_url.startswith("sqlite:")
+	flag = os.getenv("CREATE_TABLES_ON_STARTUP", "auto").strip().lower()
+
+	# Opt out only with an explicit false. SQLite always auto-prepares by default.
+	if flag in {"0", "false", "no"}:
+		return
+	if not using_sqlite and flag not in {"1", "true", "yes"}:
+		return
+
+	with app.app_context():
+		db.create_all()
+		ensure_staff_image_columns()
+		if using_sqlite:
+			ensure_default_admin()
+
 def create_app():
 	app = Flask(__name__, template_folder=SITE_DIR) #added template folder
 	configure_app(app)
@@ -1240,20 +1285,13 @@ def create_app():
 	register_player_routes(app, limiter)
 	register_season_routes(app, limiter)
 	register_cli_commands(app)
+	ensure_database_ready(app)
 	return app
 
 app = create_app()
 
 if __name__ == "__main__":
 	debug = os.getenv("FLASK_DEBUG", "false").strip().lower() in {"1", "true", "yes"}
-	create_tables = os.getenv("CREATE_TABLES_ON_STARTUP", "false").strip().lower() in {
-		"1", "true", "yes"
-	}
-
-	if create_tables:
-		with app.app_context():
-			db.create_all()
-			ensure_staff_image_columns()
 
 	app.run(
 		host=os.getenv("HOST", "127.0.0.1"),
